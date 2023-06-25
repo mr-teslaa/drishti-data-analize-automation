@@ -1,0 +1,14 @@
+__pycache__/
+application/__pycache__/
+application/public/__pycache__/
+*/*/__pycache__/
+*/*/*/__pycache__/
+*/*/*/*/__pycache__/
+*/*/*/*/*/__pycache__/
+.idea/
+venv/
+env/
+.code/
+.vscode/    
+.pytest_cache/
+tempCodeRunnerFile.py
