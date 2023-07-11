@@ -1,6 +1,12 @@
 {% extends "root.html" %}
+{% block styles %}
+    <script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
+    <link href="https://printjs-4de6.kxcdn.com/print.min.css"
+          rel="stylesheet"
+          type="text/css" />
+{% endblock %}
 {% block content %}
-    <main id="pdf-content">
+    <main id="report-print">
         <div class="container">
             <div class="header-text text-center">
                 <p class="text-center my-5">
@@ -14,16 +20,13 @@
                 <p class="fw-bold">(Time: 08:00 am to 08:00 am)</p>
             </div>
             <!-- ======= START  Instrumentation health status ======= -->
-            <a href=""
-                id="download_pdf"
-                target="_blank"
-                class="download-button btn btn-primary">Download PDF</a>
-            <h5 class="my-3 mt-5">A. Instrumentation health status</h5>
+            <button id="download-pdf" class="btn btn-primary d-print-none">Download PDF</button>
+            <h5 class="my-3 mt-5 text-primary">A. Instrumentation health status</h5>
             <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead class="bg-dark text-white">
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
                         <tr>
-                            <th>SL.no</th>
+                            <th style="width: 10px;">SL.no</th>
                             <th>Name of instrument</th>
                             <th>Total qty.installed</th>
                             <th>Functioning</th>
@@ -92,10 +95,10 @@
             </div>
             <!-- ======= END  Instrumentation health status ======= -->
             <!-- ======= START Weather conditions Summary during the reporting period ======= -->
-            <h5 class="my-5">B. Weather conditions Summary during the reporting period</h5>
+            <h5 class="my-5 text-primary">B. Weather conditions Summary during the reporting period</h5>
             <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead class="bg-dark text-white">
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
                         <tr>
                             <th>Weather Parameter</th>
                             <th>Maximum</th>
@@ -140,14 +143,14 @@
             <!-- ======= END Obserbation Section ======= -->
             <!-- ======= START Table showing the locations and Tag of Laser Sensor ======= -->
             <div class="table-responsive">
-                <h5 class="my-3">C. Table showing the locations and Tag of Laser Sensor</h5>
-                <table class="table table-bordered p-0">
-                    <thead class="bg-dark text-white">
+                <h5 class="my-3 text-primary">C. Table showing the locations and Tag of Laser Sensor</h5>
+                <table class="table table-bordered table-striped p-0">
+                    <thead class="text-center">
                         <tr>
-                            <th>SL No.</th>
+                            <th style="width: 80px;">SL No.</th>
                             <th>Laser Sensor</th>
                             <th>Location</th>
-                            <th>SL No.</th>
+                            <th style="width: 80px;">SL No.</th>
                             <th>Laser Sensor</th>
                             <th>Location</th>
                         </tr>
@@ -290,12 +293,11 @@
                 </table>
             </div>
             <!-- ======= END Table showing the locations and Tag of Laser Sensor ======= -->
-            <!-- ======= START Weather conditions Summary during the reporting period ======= -->
-            <h5 class="my-5">D. Weather conditions Summary during the reporting period</h5>
-           
+            <!-- ======= START Summary of Laser Sensor. ======= -->
+            <h5 class="my-5 text-primary">D. Summary of Laser Sensor.</h5>
             <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead class="bg-dark text-white">
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
                         <tr>
                             <th>Location</th>
                             <th>Parameter</th>
@@ -316,28 +318,27 @@
                                     <td>{{ values["Min"] }}</td>
                                     <td>{{ values["Avg"] }}</td>
                                     <td>{{ values["Std"] }}</td>
-                                    <td>35.2</td>
+                                    <td rowspan="2">{{ values["Threshold"] }}</td>
                                 </tr>
                             {% else %}
                                 <tr>
-                                    <td class="bg-info">Deflection in mm</td>
-                                    <td class="bg-info">{{ values["Max"] | round(1) }}</td>
-                                    <td class="bg-info">{{ values["Min"] | round(1) }}</td>
-                                    <td class="bg-info">{{ values["Avg"] | round(1) }}</td>
-                                    <td class="bg-info">{{ values["Std"] | round(1) }}</td>
-                                    <td class="bg-info"></td>
+                                    <td>Deflection in mm</td>
+                                    <td>{{ values["Max"] | round(1) }}</td>
+                                    <td>{{ values["Min"] | round(1) }}</td>
+                                    <td>{{ values["Avg"] | round(1) }}</td>
+                                    <td>{{ values["Std"] | round(1) }}</td>
                                 </tr>
                             {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-            <!-- ======= END Weather conditions Summary during the reporting period ======= -->
+            <!-- ======= END Summary of Laser Sensor ======= -->
             <!-- ======= START Analyze Temperature Meter ======= -->
-            <h5 class="my-5">I. Summary of Temperature Meter</h5>
+            <h5 class="my-5 text-primary">I. Summary of Temperature Meter</h5>
             <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead class="bg-dark text-white">
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
                         <tr>
                             <th>Sensor's Tag.</th>
                             <th>Maximum</th>
@@ -361,16 +362,17 @@
             </div>
             <!-- ======= END Analyze Temperature Meter ======= -->
             <!-- ======= START TILT SENSOR DATA ======= -->
-            <h5 class="my-5">K. Summary of Tilt Meter</h5>
+            <h5 class="my-5 text-primary">K. Summary of Tilt Meter</h5>
             <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead class="bg-dark text-white">
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
                         <tr>
                             <th>Sensor's Tag.</th>
                             <th>Maximum</th>
                             <th>Minimum</th>
                             <th>Average</th>
                             <th>Standard Deviation</th>
+                            <th>TH</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -381,17 +383,437 @@
                                 <td>{{ row["Minimum"] | round(1) }}</td>
                                 <td>{{ row["Average"] | round(1) }}</td>
                                 <td>{{ row["Standard Deviation"] | round(1) }}</td>
+                                <td>1.0</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
             <!-- ======= END TILT SENSOR DATA ======= -->
-            <!-- ======= START LVDT =======  -->
-            <h5 class="my-4">L. Summary of LVDT</h5>
+            <!-- ======= START STRAIN GAUGES DATA ======= -->
+            <h5 class="my-5 text-primary">H. Summary of Strain gauges.</h5>
             <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead class="bg-dark text-white">
+                <!-- Shayam bazar Viaduct RHS -->
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
+                        <tr>
+                            <th rowspan="2" style="width: 10px;">Sl.No</th>
+                            <th>Location</th>
+                            <th colspan="4">Shayam bazar Viaduct RHS</th>
+                        </tr>
+                        <tr>
+                            <th>Instrument Tag No.</th>
+                            <th>MAX.</th>
+                            <th>MIN.</th>
+                            <th>AVG.</th>
+                            <th>SD.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, row in shayam_bazar_viaduct_RHS_statistics_datas.iterrows() %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row["Instrument Tag No."] }}</td>
+                                <td>{{ row["MAX."] | round(1) }}</td>
+                                <td>{{ row["MIN."] | round(1) }}</td>
+                                <td>{{ row["AVG."] | round(1) }}</td>
+                                <td>{{ row["SD."] | round(1) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <!-- Shayam bazar Viaduct LHS -->
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
+                        <tr>
+                            <th rowspan="2" style="width: 10px;">Sl.No</th>
+                            <th>Location</th>
+                            <th colspan="4">Shayam bazar Viaduct LHS</th>
+                        </tr>
+                        <tr>
+                            <th>Instrument Tag No.</th>
+                            <th>MAX.</th>
+                            <th>MIN.</th>
+                            <th>AVG.</th>
+                            <th>SD.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, row in shayam_bazar_viaduct_LHS_statistics_datas.iterrows() %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row["Instrument Tag No."] }}</td>
+                                <td>{{ row["MAX."] | round(1) }}</td>
+                                <td>{{ row["MIN."] | round(1) }}</td>
+                                <td>{{ row["AVG."] | round(1) }}</td>
+                                <td>{{ row["SD."] | round(1) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <!-- P6-P7 LHS - BS1 -->
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
+                        <tr>
+                            <th rowspan="3" style="width: 10px;">Sl.No</th>
+                            <th>Location</th>
+                            <th colspan="5">P6-P7 LHS</th>
+                        </tr>
+                        <tr>
+                            <th colspan="6">BS-1</th>
+                        </tr>
+                        <tr>
+                            <th>Instrument Tag No.</th>
+                            <th>MAX.</th>
+                            <th>MIN.</th>
+                            <th>AVG.</th>
+                            <th>SD.</th>
+                            <th>TH.(µε+/-)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, row in P6_P7_BS1_LHS_statistics_datas.iterrows() %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row["Instrument Tag No."] }}</td>
+                                <td>{{ row["MAX."] | round(1) }}</td>
+                                <td>{{ row["MIN."] | round(1) }}</td>
+                                <td>{{ row["AVG."] | round(1) }}</td>
+                                <td>{{ row["SD."] | round(1) }}</td>
+                                <td>433.7</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <!-- P6-P7 LHS - BS3 -->
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
+                        <tr>
+                            <th rowspan="3" style="width: 10px;">Sl.No</th>
+                            <th>Location</th>
+                            <th colspan="5">P6-P7 LHS</th>
+                        </tr>
+                        <tr>
+                            <th colspan="6">BS-3</th>
+                        </tr>
+                        <tr>
+                            <th>Instrument Tag No.</th>
+                            <th>MAX.</th>
+                            <th>MIN.</th>
+                            <th>AVG.</th>
+                            <th>SD.</th>
+                            <th>TH.(µε+/-)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, row in P6_P7_BS3_LHS_statistics_datas.iterrows() %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row["Instrument Tag No."] }}</td>
+                                <td>{{ row["MAX."] | round(1) }}</td>
+                                <td>{{ row["MIN."] | round(1) }}</td>
+                                <td>{{ row["AVG."] | round(1) }}</td>
+                                <td>{{ row["SD."] | round(1) }}</td>
+                                <td>433.7</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <!-- P6-P7 LHS - BS3 -->
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
+                        <tr>
+                            <th rowspan="3" style="width: 10px;">Sl.No</th>
+                            <th>Location</th>
+                            <th colspan="5">P9-CP2 LHS</th>
+                        </tr>
+                        <tr>
+                            <th colspan="6">BS-3</th>
+                        </tr>
+                        <tr>
+                            <th>Instrument Tag No.</th>
+                            <th>MAX.</th>
+                            <th>MIN.</th>
+                            <th>AVG.</th>
+                            <th>SD.</th>
+                            <th>TH.(µε+/-)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, row in P6_P7_BS5_LHS_statistics_datas.iterrows() %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row["Instrument Tag No."] }}</td>
+                                <td>{{ row["MAX."] | round(1) }}</td>
+                                <td>{{ row["MIN."] | round(1) }}</td>
+                                <td>{{ row["AVG."] | round(1) }}</td>
+                                <td>{{ row["SD."] | round(1) }}</td>
+                                <td>433.7</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <!-- P6-P7 RHS - BS2 -->
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
+                        <tr>
+                            <th rowspan="3" style="width: 10px;">Sl.No</th>
+                            <th>Location</th>
+                            <th colspan="5">P6-P7 RHS</th>
+                        </tr>
+                        <tr>
+                            <th colspan="6">BS-2</th>
+                        </tr>
+                        <tr>
+                            <th>Instrument Tag No.</th>
+                            <th>MAX.</th>
+                            <th>MIN.</th>
+                            <th>AVG.</th>
+                            <th>SD.</th>
+                            <th>TH.(µε+/-)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, row in P6_P7_BS2_RHS_statistics_datas.iterrows() %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row["Instrument Tag No."] }}</td>
+                                <td>{{ row["MAX."] | round(1) }}</td>
+                                <td>{{ row["MIN."] | round(1) }}</td>
+                                <td>{{ row["AVG."] | round(1) }}</td>
+                                <td>{{ row["SD."] | round(1) }}</td>
+                                <td>433.7</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <!-- P7-P8 RHS - BS4 -->
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
+                        <tr>
+                            <th rowspan="3" style="width: 10px;">Sl.No</th>
+                            <th>Location</th>
+                            <th colspan="5">P6-P7 RHS</th>
+                        </tr>
+                        <tr>
+                            <th colspan="6">BS-4</th>
+                        </tr>
+                        <tr>
+                            <th>Instrument Tag No.</th>
+                            <th>MAX.</th>
+                            <th>MIN.</th>
+                            <th>AVG.</th>
+                            <th>SD.</th>
+                            <th>TH.(µε+/-)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, row in P6_P7_BS4_RHS_statistics_datas.iterrows() %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row["Instrument Tag No."] }}</td>
+                                <td>{{ row["MAX."] | round(1) }}</td>
+                                <td>{{ row["MIN."] | round(1) }}</td>
+                                <td>{{ row["AVG."] | round(1) }}</td>
+                                <td>{{ row["SD."] | round(1) }}</td>
+                                <td>433.7</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <!-- P9-CP2 RHS - BS6 -->
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
+                        <tr>
+                            <th rowspan="3" style="width: 10px;">Sl.No</th>
+                            <th>Location</th>
+                            <th colspan="5">P9-CP2 RHS</th>
+                        </tr>
+                        <tr>
+                            <th colspan="6">BS-6</th>
+                        </tr>
+                        <tr>
+                            <th>Instrument Tag No.</th>
+                            <th>MAX.</th>
+                            <th>MIN.</th>
+                            <th>AVG.</th>
+                            <th>SD.</th>
+                            <th>TH.(µε+/-)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, row in P6_P7_BS6_RHS_statistics_datas.iterrows() %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row["Instrument Tag No."] }}</td>
+                                <td>{{ row["MAX."] | round(1) }}</td>
+                                <td>{{ row["MIN."] | round(1) }}</td>
+                                <td>{{ row["AVG."] | round(1) }}</td>
+                                <td>{{ row["SD."] | round(1) }}</td>
+                                <td>433.7</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <!-- Dunlop Viaduct LHS -->
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
+                        <tr>
+                            <th rowspan="2" style="width: 10px;">Sl.No</th>
+                            <th>Location</th>
+                            <th colspan="5">Dunlop Viaduct LHS</th>
+                        </tr>
+                        <tr>
+                            <th>Instrument Tag No.</th>
+                            <th>MAX.</th>
+                            <th>MIN.</th>
+                            <th>AVG.</th>
+                            <th>SD.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, row in dunlop_Viaduct_LHS_statistics_datas.iterrows() %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row["Instrument Tag No."] }}</td>
+                                <td>{{ row["MAX."] | round(1) }}</td>
+                                <td>{{ row["MIN."] | round(1) }}</td>
+                                <td>{{ row["AVG."] | round(1) }}</td>
+                                <td>{{ row["SD."] | round(1) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <!-- Dunlop Viaduct RHS -->
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
+                        <tr>
+                            <th rowspan="2" style="width: 10px;">Sl.No</th>
+                            <th>Location</th>
+                            <th colspan="5">Dunlop Viaduct RHS</th>
+                        </tr>
+                        <tr>
+                            <th>Instrument Tag No.</th>
+                            <th>MAX.</th>
+                            <th>MIN.</th>
+                            <th>AVG.</th>
+                            <th>SD.</th>
+                            <th>TH.(µε+/-)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, row in dunlop_Viaduct_RHS_statistics_datas.iterrows() %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row["Instrument Tag No."] }}</td>
+                                <td>{{ row["MAX."] | round(1) }}</td>
+                                <td>{{ row["MIN."] | round(1) }}</td>
+                                <td>{{ row["AVG."] | round(1) }}</td>
+                                <td>{{ row["SD."] | round(1) }}</td>
+                                <td>374.5</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <!-- P7-P8 RHS (additional as suggested by IIT) -->
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
+                        <tr>
+                            <th rowspan="2" style="width: 10px;">Sl.No</th>
+                            <th>Location</th>
+                            <th colspan="5">P7-P8 RHS (additional as suggested by IIT)</th>
+                        </tr>
+                        <tr>
+                            <th>Instrument Tag No.</th>
+                            <th>MAX.</th>
+                            <th>MIN.</th>
+                            <th>AVG.</th>
+                            <th>SD.</th>
+                            <th>TH.(µε+/-)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, row in P7_P8_BS4_additional_RHS_statistics_datas.iterrows() %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row["Instrument Tag No."] }}</td>
+                                <td>{{ row["MAX."] | round(1) }}</td>
+                                <td>{{ row["MIN."] | round(1) }}</td>
+                                <td>{{ row["AVG."] | round(1) }}</td>
+                                <td>{{ row["SD."] | round(1) }}</td>
+                                <td>433.7</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- Chitpur Viaduct RHS  -->
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
+                        <tr>
+                            <th rowspan="2" style="width: 10px;">Sl.No</th>
+                            <th>Location</th>
+                            <th colspan="5">Chitpur Viaduct LHS</th>
+                        </tr>
+                        <tr>
+                            <th>Instrument Tag No.</th>
+                            <th>MAX.</th>
+                            <th>MIN.</th>
+                            <th>AVG.</th>
+                            <th>SD.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, row in chitpur_viaduct_LHS_statistics_datas.iterrows() %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row["Instrument Tag No."] }}</td>
+                                <td>{{ row["MAX."] | round(1) }}</td>
+                                <td>{{ row["MIN."] | round(1) }}</td>
+                                <td>{{ row["AVG."] | round(1) }}</td>
+                                <td>{{ row["SD."] | round(1) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <!-- Chitpur Viaduct LHS  -->
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
+                        <tr>
+                            <th rowspan="2" style="width: 10px;">Sl.No</th>
+                            <th>Location</th>
+                            <th colspan="5">Chitpur Viaduct RHS</th>
+                        </tr>
+                        <tr>
+                            <th>Instrument Tag No.</th>
+                            <th>MAX.</th>
+                            <th>MIN.</th>
+                            <th>AVG.</th>
+                            <th>SD.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for index, row in chitpur_viaduct_RHS_statistics_datas.iterrows() %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ row["Instrument Tag No."] }}</td>
+                                <td>{{ row["MAX."] | round(1) }}</td>
+                                <td>{{ row["MIN."] | round(1) }}</td>
+                                <td>{{ row["AVG."] | round(1) }}</td>
+                                <td>{{ row["SD."] | round(1) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- ======= END STRAIN GAUGES DATA ======= -->
+            <!-- ======= START LVDT =======  -->
+            <h5 class="my-4 text-primary">L. Summary of LVDT</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
                         <tr>
                             <th>Sensor's Tag.</th>
                             <th>MAX. (deg C)</th>
@@ -416,4 +838,20 @@
             <!-- =========================END LVDT======================================  -->
         </div>
     </main>
-{% endblock content %}
+{% endblock %}
+{% block scripts %}
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const downloadbtn = document.querySelector('#download-pdf');
+        downloadbtn.addEventListener('click', () => {
+           
+            // Execute the printJS function once the font is loaded
+            printJS({
+                printable: 'report-print',
+                type: 'html',
+                css: '{{ url_for("static", filename="css/bootstrap.css") }}'
+            });
+        })
+    })
+    </script>
+{% endblock %}
