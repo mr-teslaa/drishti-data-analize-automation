@@ -1,23 +1,29 @@
 {% extends "root.html" %}
+
+{% block title %}
+BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{start_date}} to {{end_date}}
+{% endblock %}
+
 {% block styles %}
     <script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
     <link href="https://printjs-4de6.kxcdn.com/print.min.css"
           rel="stylesheet"
           type="text/css" />
 {% endblock %}
+
 {% block content %}
     <main id="report-print">
         <div class="container">
             <div class="header-text text-center">
                 <p class="text-center my-5">
                     <u>
-                        BHMS Report of New Tallah ROB (Hemanta Setu) From 18/04/2023 to 24/04/2023
+                        BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{start_date}} to {{end_date}}
                     </u>
                 </p>
                 <h4>New Tallah ROB (Hemanta Setu)</h4>
                 <h5>Weekly Report on the Bridge Health Monitoring System</h5>
-                <p class="fw-bold">Reporting period: From 18/04/2023 to 24/04/2023</p>
-                <p class="fw-bold">(Time: 08:00 am to 08:00 am)</p>
+                <p class="fw-bold">Reporting period: From {{start_date}} to {{end_date}}</p>
+                <p class="fw-bold">(Time: {{start_time}} to {{end_time}})</p>
             </div>
             <!-- ======= START  Instrumentation health status ======= -->
             <button id="download-pdf" class="btn btn-primary d-print-none">Download PDF</button>
@@ -809,6 +815,7 @@
                 </table>
             </div>
             <!-- ======= END STRAIN GAUGES DATA ======= -->
+            
             <!-- ======= START LVDT =======  -->
             <h5 class="my-4 text-primary">L. Summary of LVDT</h5>
             <div class="table-responsive">
@@ -835,7 +842,43 @@
                     </tbody>
                 </table>
             </div>
-            <!-- =========================END LVDT======================================  -->
+            <!-- ====== END LVDT ========  -->
+
+            <!-- ======= START LVDT =======  -->
+            <h5 class="my-4 text-primary">L. Summary of LVDT</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="text-center">
+                        <tr>
+                            <th>Datetime</th>
+                            <th>N01_Corrosion_Current_1</th>
+                            <th>N01_Corrosion_Current_2</th>
+                            <th>N01_Corrosion_Current_3</th>
+                            <th>N01_Corrosion_Current_4</th>
+                            <th>N02_Corrosion_Current_1</th>
+                            <th>N02_Corrosion_Current_2</th>
+                            <th>N02_Corrosion_Current_3</th>
+                            <th>N02_Corrosion_Current_4</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in corrosion_data %}
+                        <tr>
+                            <td>{{ row['Datetime'] }}</td>
+                            <td>{{ row['N01_Corrosion_Current_1'] }}</td>
+                            <td>{{ row['N01_Corrosion_Current_2'] }}</td>
+                            <td>{{ row['N01_Corrosion_Current_3'] }}</td>
+                            <td>{{ row['N01_Corrosion_Current_4'] }}</td>
+                            <td>{{ row['N02_Corrosion_Current_1'] }}</td>
+                            <td>{{ row['N02_Corrosion_Current_2'] }}</td>
+                            <td>{{ row['N02_Corrosion_Current_3'] }}</td>
+                            <td>{{ row['N02_Corrosion_Current_4'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- ====== END LVDT ========  -->
         </div>
     </main>
 {% endblock %}

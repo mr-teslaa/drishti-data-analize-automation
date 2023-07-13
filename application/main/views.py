@@ -31,6 +31,8 @@ dl = [
     "Tallah_ROB_P9_A2_DL4-DataList.csv",
     "Tallah_ROB_P16_A3_DL5-DataList.csv"
 ]
+corrosion_csv = "Tallah_Corrosion_Current-DataList.csv"
+
 
 @main.route("/")
 def home():
@@ -43,6 +45,17 @@ def home():
     # Read the CSV file into a DataFrame
     weather_csv_file = weather_csv
     weather_df = pd.read_csv(weather_csv_file, skiprows=3)
+
+    # TAKING THE DATE AND TIME RANGE
+    # Extract the first and last datetime values from the "Datetime" column
+    first_datetime = pd.to_datetime(weather_df["Datetime"].iloc[0])
+    last_datetime = pd.to_datetime(weather_df["Datetime"].iloc[-1])
+
+    # Extract the start date, end date, start time, and end time
+    start_date = first_datetime.strftime("%d/%m/%Y")
+    end_date = last_datetime.strftime("%d/%m/%Y")
+    start_time = first_datetime.strftime("%I:%M %p")
+    end_time = last_datetime.strftime("%I:%M %p")
 
     # Define the columns for analysis
     weather_columns = [
@@ -1335,9 +1348,36 @@ def home():
 
     ########## END Strain Gauges Data ##########
 
+
+    ################## START CORROSION DATA ######################
+    corrosion_csv_files = corrosion_csv
+
+    # Define the columns for analysis
+    corrosion_columns = [
+        "N01_Corrosion_Current_1",
+        "N01_Corrosion_Current_2",
+        "N01_Corrosion_Current_3",
+        "N01_Corrosion_Current_4",
+        "N02_Corrosion_Current_1",
+        "N02_Corrosion_Current_2",
+        "N02_Corrosion_Current_3",
+        "N02_Corrosion_Current_4"
+    ]
+
+    df = pd.read_csv(corrosion_csv_files, skiprows=3)
+
+    # Select the specified columns from the DataFrame
+    corrosion_selected_columns = df[corrosion_columns]
+
+    # Convert the DataFrame to a list of dictionaries
+    corrosion_data = corrosion_selected_columns.to_dict(orient='records')
+    ################## END CORROSION DATA ######################
+
                 
     return render_template(
         "home.html",
+        start_date=start_date, end_date=end_date,
+        start_time=start_time, end_time=end_time,
         weather_datas=weather_datas, laser_datas=laser_datas,
         temprature_meter_datas=temprature_meter_datas, 
         tilt_meter_datas=tilt_meter_datas, ldvt_datas=ldvt_datas,
@@ -1353,5 +1393,6 @@ def home():
         dunlop_Viaduct_LHS_statistics_datas=dunlop_Viaduct_LHS_statistics_datas,
         P7_P8_BS4_additional_RHS_statistics_datas=P7_P8_BS4_additional_RHS_statistics_datas,
         chitpur_viaduct_RHS_statistics_datas=chitpur_viaduct_RHS_statistics_datas,
-        chitpur_viaduct_LHS_statistics_datas=chitpur_viaduct_LHS_statistics_datas
+        chitpur_viaduct_LHS_statistics_datas=chitpur_viaduct_LHS_statistics_datas,
+        corrosion_data=corrosion_data
     )
