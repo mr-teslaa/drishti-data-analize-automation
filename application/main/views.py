@@ -11,11 +11,15 @@
  
 ################################################
 
+import os
+import re
+import datetime
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from flask import Blueprint
 from flask import render_template
-import pandas as pd
-import numpy as np
-import re
 
 # import pdfkit
 from flask import send_file
@@ -23,7 +27,46 @@ main = Blueprint('main', __name__)
 
 # DEFINING THE CSV FILES
 weather_csv = "AutomaticWeatherStation_Data_List.csv"
+
 laser_csv = "TallahROBLaser_Data_List.csv"
+
+accelerometers_csv = [
+    "Tallah_ROB Accelerometer_3DACC1_A1_Approach -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_3DACC2_P6_P7_RHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_3DACC3_P6_P7_LHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_3DACC4_P7_P8_RHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_3DACC5_P7_P8_LHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_3DACC6_P9_CP2_RHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_3DACC7_P9_CP_LHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_3DACC8_A2_Approach -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_3DACC9_A3_Approach -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC01_A1_P1_RHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC02_A1_P1_LHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC03_P1_P2 -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC04_P2_P3 -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC05_P3_P4 -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC06_P4_P5 -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC07_P5_CP1 -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC08_CP1_P6_RHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC09_CP1_P6_LHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC10_P8_P9_RHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC11_P8_P9_LHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC12_CP2_P10 -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC13_P10_P11 -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC14_P11_P12 -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC15_P12_P13 -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC16_P13_P14 -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC17_P14_A2_RHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC18_P14_A2_LHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC19_A3_P21_RHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC20_A3_P21_LHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC21_P21_P20 -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC22_P20_P19 -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC23_P19_P18 -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC24_P18_P17 -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_ACC25_P17_P16 -Data List13Jul23.csv"
+]
+
 dl = [
     "Tallah_ROB_A1_P7_DL1-DataList.csv",
     "Tallah_ROB_P6_P8_DL2-DataList.csv",
@@ -31,7 +74,34 @@ dl = [
     "Tallah_ROB_P9_A2_DL4-DataList.csv",
     "Tallah_ROB_P16_A3_DL5-DataList.csv"
 ]
+
 corrosion_csv = "Tallah_Corrosion_Current-DataList.csv"
+################ START - SAVE THE LINE CHART ################
+
+# Directory to save the generated charts
+chart_directory = "application/static/charts/"
+
+# Check if the chart directory exists and contains files
+if os.path.exists(chart_directory) and os.listdir(chart_directory):
+    # Clear the chart directory
+    for filename in os.listdir(chart_directory):
+        file_path = os.path.join(chart_directory, filename)
+        os.unlink(file_path)
+
+
+
+# Define the desired lower and upper limits of the y-axis
+lower_limit = -50
+upper_limit = 50
+
+# Define the desired tick spacing for the y-axis
+tick_spacing = 5
+
+# Calculate the tick positions based on the desired tick spacing
+tick_positions = np.arange(lower_limit, upper_limit+1, tick_spacing)
+
+plt.style.use('seaborn-whitegrid')
+################ END - SAVE THE LINE CHART ################
 
 
 @main.route("/")
@@ -105,6 +175,7 @@ def home():
     # Read the CSV file into a DataFrame
     laser_csv_file = laser_csv
     laser_df = pd.read_csv(laser_csv_file, skiprows=3)
+    laser_df.columns = laser_df.columns.str.strip()
 
     # Define the columns we need to calculate
     laser_columns = [
@@ -230,7 +301,104 @@ def home():
 
         # Append the row results to the overall results list
         laser_datas.append(row_results)
+
+
+
+    # --------------------------------------- #
+    # -- SHOWING LINE CHART OF Laser Data --- #
+    # --------------------------------------- #
+    # Iterate over the Deflection columns
+    for i in range(1, 6):
+        deflection_column = f"Deflection_{i}"
+        threshold_column = f"Threshold_LS{i}_Action"
+
+        # Create a new figure and axis for each chart
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+        # Plot the Deflection and Threshold lines
+        ax.plot(laser_df['DateTime'], laser_df[deflection_column], label=f'{deflection_column} (Deflection)')
+        ax.plot(laser_df['DateTime'], laser_df[threshold_column], label=f'{threshold_column} (Threshold)')
+
+        # Set labels and title
+        ax.set_xlabel('DateTime')
+        ax.set_ylabel('Value')
+        ax.set_title(f'Laser Chart {i}')
+    
+        # Rotate and align the datetime labels
+        ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
+        plt.xticks(rotation=17, ha='right')
+    
+        # Set custom y-axis limits
+        ax.set_ylim(lower_limit, upper_limit)
+
+        # Set custom y-axis tick positions and labels
+        ax.set_yticks(tick_positions)
+        ax.set_yticklabels(tick_positions)
+
+        # Add legend
+        ax.legend()
+
+        # Save the chart as an image file
+        laser_chart_filename = f"laser_chart_{i}.png"
+        laser_chart_filepath = os.path.join(chart_directory, laser_chart_filename)
+        plt.savefig(laser_chart_filepath, bbox_inches='tight')
+        plt.close()
+
     ########## END Laser Data ##########
+
+
+    # ########## START Temperature Meter Data ##########
+    # accelerometers_csv_files = accelerometers_csv
+    # # laser_df = pd.read_csv(laser_csv_file, skiprows=3)
+    # # laser_df.columns = laser_df.columns.str.strip()
+    # # Iterate over each CSV file
+    # for accelerometers_csv_file in accelerometers_csv_files:
+    #     # Read the CSV file into a DataFrame
+    #     accelerometers_df = pd.read_csv(accelerometers_csv_file, skiprows=3)
+    #     accelerometers_df.columns = accelerometers_df.columns.str.strip()
+
+
+    #     # Get the column names excluding the "DateTime" column
+    #     columns = accelerometers_df.columns[1:]
+    #     print('---- columns ------')
+    #     print(columns)
+
+    #     # Iterate over each column
+    #     for column in columns:
+    #         print(f'--> column: {column}')
+    #         # Create a new figure and axis for each chart
+    #         fig, ax = plt.subplots(figsize=(12, 6))
+
+    #         # Plot the line for the current column
+    #         ax.plot(accelerometers_df['DateTime'], accelerometers_df[column])
+
+    #         # Set labels and title
+    #         ax.set_xlabel('DateTime')
+    #         ax.set_ylabel(column)
+    #         ax.set_title(f'Accelerometers Chart - {column}')
+
+    #         # Rotate and align the datetime labels
+    #         # ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+    #         # ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
+    #         # plt.xticks(rotation=17, ha='right')
+
+    #         # Set custom y-axis limits
+    #         # ax.set_ylim(lower_limit, upper_limit)
+
+    #         # Set custom y-axis tick positions and labels
+    #         # ax.set_yticks(tick_positions)
+    #         # ax.set_yticklabels(tick_positions)
+
+    #         # Add legend
+    #         ax.legend()
+
+    #         # Save the chart as an image file
+    #         accelerometer_chart_filename = f"accelerometers_chart_{i}.png"
+    #         accelerometer_chart_filepath = os.path.join(chart_directory, accelerometer_chart_filename)
+    #         plt.savefig(accelerometer_chart_filepath, bbox_inches='tight')
+    #         plt.close()
+    # ########## END Temperature Meter Data ##########
 
 
     ########## START Temperature Meter Data ##########
@@ -364,74 +532,6 @@ def home():
         # "Tallah_ROB_P16_A3_DL5-DataList23Jun23.csv"
     ]
 
-    # Define the columns for analysis
-    # ldvt_columns = [
-    #     "P6_BS1_FF_D_Displacement",
-    #     "P6_BS1_LGS_D_Displacement",
-    #     "P6_BS2_LGS_D_Displacement",
-    #     "P6_BS2_FF_D_Displacement",
-    #     "P3_D1_Displacement",
-    #     "P3_D2_Displacement",
-    #     "P3_D3_Displacement",
-    #     "P3_D4_Displacement",
-    #     "P3_D5_Displacement",
-    #     "P3_D6_Displacement",
-    #     "P3_D7_Displacement",
-    #     "P3_D8_Displacement",
-    #     "P4_D1_Displacement",
-    #     "P4_D2_Displacement",
-    #     "P4_D3_Displacement",
-    #     "P4_D4_Displacement",
-    #     "P4_D5_Displacement",
-    #     "P4_D6_Displacement",
-    #     "P4_D7_Displacement",
-    #     "P4_D8_Displacement",
-    #     "P7_BS1_TGS_Displacement",
-    #     "P7_BS1_FX_Displacement",
-    #     "P7_BS2_FX_Displacement",
-    #     "P7_P8_BS3_FF_Displacement",
-    #     "P7_P8_BS3_LGS_Displacement",
-    #     "P7_P8_BS4_LGS_Displacement",
-    #     "P7_BS4_FX_Displacement",
-    #     "P7_BS2_TGS_Displacement",
-    #     "P8_D1_Displacement",
-    #     "P8_D2_Displacement",
-    #     "P8_D3_Displacement",
-    #     "P8_D4_Displacement",
-    #     "P9_D1_Displacement",
-    #     "P9_D2_Displacement",
-    #     "P9_D3_Displacement",
-    #     "P9_D4_Displacement",
-    #     "CP2_BS5_TGS_D_Displacement",
-    #     "CP2_BS5_FX_D_Displacement",
-    #     "CP_BS6_FX_D_Displacement",
-    #     "CP2_BS6_TGS_D_Displacement",
-    #     "P12_D1_Displacement",
-    #     "P12_D2_Displacement",
-    #     "P12_D3_Displacement",
-    #     "P12_D4_Displacement",
-    #     "P12_D5_Displacement",
-    #     "P12_D6_Displacement",
-    #     "P12_D7_Displacement",
-    #     "P12_D8_Displacement",
-    #     "P11_D1_Displacement",
-    #     "P11_D2_Displacement",
-    #     "P11_D3_Displacement",
-    #     "P11_D4_Displacement",
-    #     "P11_D5_Displacement",
-    #     "P11_D6_Displacement",
-    #     "P11_D7_Displacement",
-    #     "P11_D8_Displacement",
-    #     "P18_D1_Displacement",
-    #     "P18_D2_Displacement",
-    #     "P18_D3_Displacement",
-    #     "P18_D4_Displacement",
-    #     "P17_D1_Displacement",
-    #     "P17_D2_Displacement",
-    #     "P17_D3_Displacement",
-    #     "P17_D4_Displacement"
-    # ]
-
     # Define Threshold value for LVDT
     ldvt_columns = {
         "P6_BS1_FF_D_Displacement": 92.5,
@@ -533,6 +633,239 @@ def home():
 
     # Create a DataFrame from the statistics dictionary
     ldvt_datas = pd.DataFrame(ldvt_statistics)
+
+
+
+
+    # --------------------------------------- #
+    # -- SHOWING LINE CHART OF Laser Data --- #
+    # --------------------------------------- #
+    chart_columns = [
+        ['P6_BS1_LGS_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
+        ['P6_BS2_LGS_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
+        ['P6_BS1_FF_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
+        ['P6_BS2_FF_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
+        ['P7_BS1_TGS_Displacement', 'P7_TGS_Alert_Positive', 'P7_TGS_Alert_Negative', 'P7_TGS_Action_Positive', 'P7_TGS_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
+        ['P7_BS1_FX_Displacement', 'P7_FX_Alert_Positive', 'P7_FX_Alert_Negative', 'P7_FX_Action_Positive', 'P7_FX_Action_Negative', 'P7_FX_Alarm_Positive', 'P7_FX_Alarm_Negative'],
+        ['P7_BS2_FX_Displacement', 'P7_FX_Alert_Positive', 'P7_FX_Alert_Negative', 'P7_FX_Action_Positive', 'P7_FX_Action_Negative', 'P7_FX_Alarm_Positive', 'P7_FX_Alarm_Negative'],
+        ['P7_P8_BS3_FF_Displacement', 'P7_P8_BS3_BS4_Alert_Positive', 'P7_P8_BS4_Alert_Negative', 'P7_P8_BS4_Action_Positive', 'P7_P8_BS4_Action_Negative', 'P7_P8_BS4_Alarm_Positive', 'P7_P8_BS4_Alarm_Negative'],
+        ['P7_P8_BS3_LGS_Displacement', 'P7_P8_BS3_BS4_Alert_Positive', 'P7_P8_BS4_Alert_Negative', 'P7_P8_BS4_Action_Positive', 'P7_P8_BS4_Action_Negative', 'P7_P8_BS4_Alarm_Positive', 'P7_P8_BS4_Alarm_Negative'],
+        ['P7_P8_BS4_LGS_Displacement', 'P7_P8_BS3_BS4_Alert_Positive', 'P7_P8_BS4_Alert_Negative', 'P7_P8_BS4_Action_Positive', 'P7_P8_BS4_Action_Negative', 'P7_P8_BS4_Alarm_Positive', 'P7_P8_BS4_Alarm_Negative'],
+        ['P7_BS2_TGS_Displacement', 'P7_TGS_Alert_Positive', 'P7_TGS_Alert_Negative', 'P7_TGS_Action_Positive', 'P7_TGS_Action_Negative', 'P7_TGS_Alarm_Positive', 'P7_TGS_Alarm_Negative'],
+        ['P8_D1_Displacement', 'TGS_Alert_Positive', 'TGS_Alert_Negative', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
+        ['P8_D2_Displacement', 'P8_D2_D3_Alert_Positive', 'P8_D2_D3_Alert_Negative', 'P8_D2_D3_Action_Positive', 'P8_D2_D3_Action_Negative', 'P8_D2_D3_Alarm_Positive', 'P8_D2_D3_Alarm_Negative'],
+        ['P8_D3_Displacement', 'P8_D2_D3_Alert_Positive', 'P8_D2_D3_Alert_Negative', 'P8_D2_D3_Action_Positive', 'P8_D2_D3_Action_Negative', 'P8_D2_D3_Alarm_Positive', 'P8_D2_D3_Alarm_Negative'],
+        ['P8_D4_Displacement', 'TGS_Alert_Positive', 'TGS_Alert_Negative', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
+        ['P9_D1_Displacement', 'FF_Alert_Positive', 'FF_Alert_Negative', 'FF_Action_Positive', 'FF_Action_Negative', 'FF_Alarm_Positive', 'FF_Alarm_Negative'],
+        ['P9_D2_Displacement', 'LGS_Alert_Positive', 'LGS_Alert_Negative', 'LGS_Action_Positive', 'LGS_Action_Negative', 'LGS_Alarm_Positive', 'LGS_Alarm_Negative'],
+        ['P9_D3_Displacement', 'LGS_Alert_Positive', 'LGS_Alert_Negative', 'LGS_Action_Positive', 'LGS_Action_Negative', 'LGS_Alarm_Positive', 'LGS_Alarm_Negative'],
+        ['P9_D4_Displacement', 'FF_Alert_Positive', 'FF_Alert_Negative', 'FF_Action_Positive', 'FF_Action_Negative', 'FF_Alarm_Positive', 'FF_Alarm_Negative'],
+        ['P12_D1_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P12_D2_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P12_D3_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P12_D4_Displacement', 'P11_P12_D4_D5_Alert_Positive', 'P11_P12_D4_D5_Alert_Negative', 'P11_P12_D4_D5_Action_Positive', 'P11_P12_D4_D5_Action_Negative', 'P11_P12_D4_D5_Alarm_Positive', 'P11_P12_D4_D5_Alarm_Negative'],
+        ['P12_D5_Displacement', 'P11_P12_D4_D5_Alert_Positive', 'P11_P12_D4_D5_Alert_Negative', 'P11_P12_D4_D5_Action_Positive', 'P11_P12_D4_D5_Action_Negative', 'P11_P12_D4_D5_Alarm_Positive', 'P11_P12_D4_D5_Alarm_Negative'],
+        ['P12_D6_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P12_D7_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P12_D8_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D1_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D2_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D3_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D4_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D5_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D6_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D7_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D8_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['CP2_BS5_TGS_D_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
+        ['CP2_BS5_FX_D_Displacement', 'FX_Alert_Negative', 'FX_Alert_Positive', 'FX_Action_Positive', 'FX_Action_Negative', 'FX_Alarm_Positive', 'FX_Alarm_Negative'],
+        ['CP_BS6_FX_D_Displacement', 'FX_Alert_Negative', 'FX_Alert_Positive', 'FX_Action_Positive', 'FX_Action_Negative', 'FX_Alarm_Positive', 'FX_Alarm_Negative'],
+        ['CP2_BS6_TGS_D_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
+        ['P18_D1_Displacement', 'FF_Alert_Negative', 'FF_Alert_Positive', 'FF_Action_Positive', 'FF_Action_Negative', 'FF_Alarm_Positive', 'FF_Alarm_Negative'],
+        ['P18_D2_Displacement', 'LGS_Alert_Negative', 'LGS_Alert_Positive', 'LGS_Action_Positive', 'LGS_Action_Negative', 'LGS_Alarm_Positive', 'LGS_Alarm_Negative'],
+        ['P18_D3_Displacement', 'LGS_Alert_Negative', 'LGS_Alert_Positive', 'LGS_Action_Positive', 'LGS_Action_Negative', 'LGS_Alarm_Positive', 'LGS_Alarm_Negative'],
+        ['P18_D4_Displacement', 'FF_Alert_Negative', 'FF_Alert_Positive', 'FF_Action_Positive', 'FF_Action_Negative', 'FF_Alarm_Positive', 'FF_Alarm_Negative'],
+        ['P17_D1_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
+        ['P17_D2_Displacement', 'P17_D3_D2_Alert_Negative', 'P17_D3_D2_Alert_Positive', 'P17_D3_D2_Action_Positive', 'P17_D3_D2_Action_Negative', 'P17_D3_D2_Alarm_Positive', 'P17_D3_D2_Alarm_Negative'],
+        ['P17_D3_Displacement', 'P17_D3_D2_Alert_Negative', 'P17_D3_D2_Alert_Positive', 'P17_D3_D2_Action_Positive', 'P17_D3_D2_Action_Negative', 'P17_D3_D2_Alarm_Positive', 'P17_D3_D2_Alarm_Negative'],
+        ['P17_D4_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'P17_D3_D2_Action_Positive', 'P17_D3_D2_Action_Negative', 'P17_D3_D2_Alarm_Positive', 'P17_D3_D2_Alarm_Negative']
+    ]
+
+    # Iterate over each CSV file
+    for dl_csv_file in dl:
+        # Read the CSV file into a DataFrame
+        df = pd.read_csv(dl_csv_file, skiprows=3)
+        df.columns = df.columns.str.strip()
+
+        for i, columns in enumerate(chart_columns):
+            # Create a new figure and axis for each chart
+            fig, ax = plt.subplots(figsize=(12, 6))
+
+            # print('--- list of all column ------')
+            # # print(column in df.columns for column in columns)
+            # if all(column in df.columns for column in columns):
+            #     print(f'Column found: {columns}')
+            # else:
+            #     print(f'Column not found: {columns}')
+            # print('----- end of all column ----')
+
+            # Check if all required columns exist in the DataFrame
+            if all(column in df.columns for column in columns):
+                for column in columns:
+                    # Plot the data
+                    ax.plot(df['DateTime'], df[column], label=column)
+
+                # Set labels and title
+                ax.set_xlabel('DateTime')
+                ax.set_ylabel('Value')
+                ax.set_title(f'Chart {i+1}')
+
+                # Rotate and align the datetime labels
+                ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+                ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
+                plt.xticks(rotation=17, ha='right')
+
+                # Customize other chart properties as needed
+
+                # Add legend
+                ax.legend()
+
+                # Save the chart as an image file
+                chart_filename = f"strain_gauges_chart_{i+1}.png"
+                chart_filepath = os.path.join(chart_directory, chart_filename)
+                plt.savefig(chart_filepath, bbox_inches='tight')
+                plt.close()
+            else:
+                print(f"Required columns not found in {dl_csv_file}. Skipping chart {i+1}.")
+
+
+
+
+
+    # df = pd.read_csv(ldvt_csv_files[0], skiprows=3)
+    # df.columns = df.columns.str.strip()
+
+    # chart_types = ['P3', 'P4']
+    # columns = [
+    #     'Displacement', 
+    #     'D1_D8_Alert_Positive', 
+    #     'D1_D8_Alert_Negative', 
+    #     'D1_D8_Action_Positive', 
+    #     'D1_D8_Action_Negative', 
+    #     'D1_D8_Alarm_Positive', 
+    #     'D1_D8_Alarm_Negative'
+    # ]
+
+    # for chart_type in chart_types:
+    #     for i in range(1, 8):
+    #         # Create a new figure and axis for each chart
+    #         fig, ax = plt.subplots(figsize=(12, 6))
+
+    #         # Set the displacement column name dynamically
+    #         displacement_column = f"{chart_type}_D{i}_Displacement"
+
+    #         # Plot the displacement data
+    #         ax.plot(df['DateTime'], df[displacement_column], color='b', label=displacement_column)
+
+    #         # Iterate over the remaining columns
+    #         for column in columns[1:]:
+    #             # Set the column name dynamically
+    #             chart_column = f"{chart_type}_{column}"
+
+    #             # Plot the data
+    #             ax.plot(df['DateTime'], df[chart_column], label=chart_column)
+
+    #         # Set labels and title
+    #         ax.set_xlabel('DateTime')
+    #         ax.set_ylabel('Value')
+    #         ax.set_title(f'{chart_type} Chart {i}')
+
+    #         # Rotate and align the datetime labels
+    #         ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+    #         ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
+    #         plt.xticks(rotation=17, ha='right')
+
+    #         # Customize other chart properties as needed
+
+    #         # Add legend
+    #         ax.legend()
+
+    #         # Save the chart as an image file
+    #         chart_filename = f"{chart_type.lower()}_chart_{i}.png"
+    #         chart_filepath = os.path.join(chart_directory, chart_filename)
+    #         plt.savefig(chart_filepath, bbox_inches='tight')
+    #         plt.close()
+
+
+    # Iterate over the Deflection columns
+    # for i in range(1, 8):
+    #     # Create a new figure and axis for each chart
+    #     fig, ax = plt.subplots(figsize=(12, 6))
+
+    #     # ========= START P3 ========= 
+    #     #   P3 CHARTS FOR D1 TO D7
+    #     p3_displacement_column = f"P3_D{i}_Displacement"
+    #     P3_D1_D8_Alert_Positive_column = "P3_D1_D8_Alert_Positive"
+    #     P3_D1_D8_Alert_Negative_column = "P3_D1_D8_Alert_Negative"
+    #     P3_D1_D8_Action_Positive_column = "P3_D1_D8_Action_Positive"
+    #     P3_D1_D8_Action_Negative_column = "P3_D1_D8_Action_Negative"
+    #     P3_D1_D8_Alarm_Positive_column = "P3_D1_D8_Alarm_Positive"
+    #     P3_D1_D8_Alarm_Negative_column = "P3_D1_D8_Alarm_Negative"
+
+    #     # P3 Plot the Deflection and Threshold lines
+    #     ax.plot(df['DateTime'], df[p3_displacement_column], color='b', label=f'P3_D{i}_Displacement')
+    #     ax.plot(df['DateTime'], df[P3_D1_D8_Alert_Positive_column], color='g', label='P3_D1_D8_Alert_Positive')
+    #     ax.plot(df['DateTime'], df[P3_D1_D8_Alert_Negative_column], color='g', label='P3_D1_D8_Alert_Negative')
+    #     ax.plot(df['DateTime'], df[P3_D1_D8_Action_Positive_column], color='y', label='P3_D1_D8_Action_Positive')
+    #     ax.plot(df['DateTime'], df[P3_D1_D8_Action_Negative_column], color='y', label='P3_D1_D8_Action_Negative')
+    #     ax.plot(df['DateTime'], df[P3_D1_D8_Alarm_Positive_column], color='r', label='P3_D1_D8_Alarm_Positive')
+    #     ax.plot(df['DateTime'], df[P3_D1_D8_Alarm_Negative_column], color='r', label='P3_D1_D8_Alarm_Negative') 
+    #     # ========= END P3 =========
+
+    #     # ========= START P4 ========= 
+    #     #   P3 CHARTS FOR D1 TO D7
+    #     p4_displacement_column = f"P4_D{i}_Displacement"
+    #     P4_D1_D8_Alert_Positive_column = "P4_D1_D8_Alert_Positive"
+    #     P4_D1_D8_Alert_Negative_column = "P4_D1_D8_Alert_Negative"
+    #     P4_D1_D8_Action_Positive_column = "P4_D1_D8_Action_Positive"
+    #     P4_D1_D8_Action_Negative_column = "P4_D1_D8_Action_Negative"
+    #     P4_D1_D8_Alarm_Positive_column = "P4_D1_D8_Alarm_Positive"
+    #     P4_D1_D8_Alarm_Negative_column = "P4_D1_D8_Alarm_Negative"
+
+    #     # P4 Plot the Deflection and Threshold lines
+    #     ax.plot(df['DateTime'], df[p4_displacement_column], color='b', label=f'P4_D{i}_Displacement')
+    #     ax.plot(df['DateTime'], df[P4_D1_D8_Alert_Positive_column], color='g', label='P4_D1_D8_Alert_Positive')
+    #     ax.plot(df['DateTime'], df[P4_D1_D8_Alert_Negative_column], color='g', label='P4_D1_D8_Alert_Negative')
+    #     ax.plot(df['DateTime'], df[P4_D1_D8_Action_Positive_column], color='y', label='P4_D1_D8_Action_Positive')
+    #     ax.plot(df['DateTime'], df[P4_D1_D8_Action_Negative_column], color='y', label='P4_D1_D8_Action_Negative')
+    #     ax.plot(df['DateTime'], df[P4_D1_D8_Alarm_Positive_column], color='r', label='P4_D1_D8_Alarm_Positive')
+    #     ax.plot(df['DateTime'], df[P4_D1_D8_Alarm_Negative_column], color='r', label='P4_D1_D8_Alarm_Negative') 
+    #     # ========= END P4 =========
+
+    #     # Set labels and title
+    #     ax.set_xlabel('DateTime')
+    #     ax.set_ylabel('Value')
+    #     ax.set_title(f'LVDT Chart {i}')
+
+    #     # Rotate and align the datetime labels
+    #     ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+    #     ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
+    #     plt.xticks(rotation=17, ha='right')
+    
+    #     # Set custom y-axis limits
+    #     ax.set_ylim(lower_limit, upper_limit)
+
+    #     # Set custom y-axis tick positions and labels
+    #     ax.set_yticks(tick_positions)
+    #     ax.set_yticklabels(tick_positions)
+
+    #     # Add legend
+    #     ax.legend()
+
+    #     # Save the chart as an image file
+    #     laser_chart_filename = f"lvdt_p3_chart_{i}.png"
+    #     laser_chart_filepath = os.path.join(chart_directory, laser_chart_filename)
+    #     plt.savefig(laser_chart_filepath, bbox_inches='tight')
+    #     plt.close()
 
     ########## END LDVT Data ##########
 
@@ -1381,6 +1714,7 @@ def home():
         weather_datas=weather_datas, laser_datas=laser_datas,
         temprature_meter_datas=temprature_meter_datas, 
         tilt_meter_datas=tilt_meter_datas, ldvt_datas=ldvt_datas,
+        chart_columns=chart_columns,
         shayam_bazar_viaduct_RHS_statistics_datas=shayam_bazar_viaduct_RHS_statistics_datas,
         shayam_bazar_viaduct_LHS_statistics_datas=shayam_bazar_viaduct_LHS_statistics_datas,
         P6_P7_BS1_LHS_statistics_datas=P6_P7_BS1_LHS_statistics_datas,
