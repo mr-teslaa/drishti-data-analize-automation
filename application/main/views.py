@@ -307,43 +307,27 @@ def home():
     # --------------------------------------- #
     # -- SHOWING LINE CHART OF Laser Data --- #
     # --------------------------------------- #
+    # Initialize arrays to store data for each chart
+    laser_charts_data = []
+
     # Iterate over the Deflection columns
     for i in range(1, 6):
         deflection_column = f"Deflection_{i}"
         threshold_column = f"Threshold_LS{i}_Action"
 
-        # Create a new figure and axis for each chart
-        fig, ax = plt.subplots(figsize=(12, 6))
+        # Create data dictionary for this chart
+        chart_data = {
+            "labels": list(laser_df['DateTime']),  # Assuming 'DateTime' is a column in 'laser_df'
+            "deflection_data": list(laser_df[deflection_column]),
+            "threshold_data": list(laser_df[threshold_column]),
+            "chart_title": f"Laser Chart {i}",
+            "y_axis_limits": [lower_limit, upper_limit],
+            "y_axis_tick_positions": tick_positions
+        }
 
-        # Plot the Deflection and Threshold lines
-        ax.plot(laser_df['DateTime'], laser_df[deflection_column], label=f'{deflection_column} (Deflection)')
-        ax.plot(laser_df['DateTime'], laser_df[threshold_column], label=f'{threshold_column} (Threshold)')
+        # Append data dictionary to the array
+        laser_charts_data.append(chart_data)
 
-        # Set labels and title
-        ax.set_xlabel('DateTime')
-        ax.set_ylabel('Value')
-        ax.set_title(f'Laser Chart {i}')
-    
-        # Rotate and align the datetime labels
-        ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
-        plt.xticks(rotation=17, ha='right')
-    
-        # Set custom y-axis limits
-        ax.set_ylim(lower_limit, upper_limit)
-
-        # Set custom y-axis tick positions and labels
-        ax.set_yticks(tick_positions)
-        ax.set_yticklabels(tick_positions)
-
-        # Add legend
-        ax.legend()
-
-        # Save the chart as an image file
-        laser_chart_filename = f"laser_chart_{i}.png"
-        laser_chart_filepath = os.path.join(chart_directory, laser_chart_filename)
-        plt.savefig(laser_chart_filepath, bbox_inches='tight')
-        plt.close()
 
     ########## END Laser Data ##########
 
@@ -638,7 +622,7 @@ def home():
 
 
     # --------------------------------------- #
-    # -- SHOWING LINE CHART OF Laser Data --- #
+    # -- SHOWING LINE CHART OF LDVT Data --- #
     # --------------------------------------- #
     chart_columns = [
         ['P6_BS1_LGS_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
@@ -690,52 +674,45 @@ def home():
         ['P17_D4_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'P17_D3_D2_Action_Positive', 'P17_D3_D2_Action_Negative', 'P17_D3_D2_Alarm_Positive', 'P17_D3_D2_Alarm_Negative']
     ]
 
+    # Initialize a list to store chart data for all charts
+    ldvt_charts_data = []
+
     # Iterate over each CSV file
     for dl_csv_file in dl:
         # Read the CSV file into a DataFrame
         df = pd.read_csv(dl_csv_file, skiprows=3)
         df.columns = df.columns.str.strip()
 
+        # Initialize a list to store chart data for this CSV file
+        csv_charts_data = []
+
         for i, columns in enumerate(chart_columns):
-            # Create a new figure and axis for each chart
-            fig, ax = plt.subplots(figsize=(12, 6))
-
-            # print('--- list of all column ------')
-            # # print(column in df.columns for column in columns)
-            # if all(column in df.columns for column in columns):
-            #     print(f'Column found: {columns}')
-            # else:
-            #     print(f'Column not found: {columns}')
-            # print('----- end of all column ----')
-
             # Check if all required columns exist in the DataFrame
             if all(column in df.columns for column in columns):
+                # Create a dictionary to store chart data
+                chart_data = {
+                    "chart_title": f"Chart {i + 1}",
+                    "labels": list(df['DateTime']),
+                    "datasets": []
+                }
+
                 for column in columns:
-                    # Plot the data
-                    ax.plot(df['DateTime'], df[column], label=column)
+                    # Create a dataset dictionary for this column
+                    dataset = {
+                        "label": column,
+                        "data": list(df[column])
+                    }
 
-                # Set labels and title
-                ax.set_xlabel('DateTime')
-                ax.set_ylabel('Value')
-                ax.set_title(f'Chart {i+1}')
+                    # Add the dataset to the chart data
+                    chart_data["datasets"].append(dataset)
 
-                # Rotate and align the datetime labels
-                ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-                ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
-                plt.xticks(rotation=17, ha='right')
-
-                # Customize other chart properties as needed
-
-                # Add legend
-                ax.legend()
-
-                # Save the chart as an image file
-                chart_filename = f"strain_gauges_chart_{i+1}.png"
-                chart_filepath = os.path.join(chart_directory, chart_filename)
-                plt.savefig(chart_filepath, bbox_inches='tight')
-                plt.close()
+                # Append the chart data to the list for this CSV file
+                csv_charts_data.append(chart_data)
             else:
-                print(f"Required columns not found in {dl_csv_file}. Skipping chart {i+1}.")
+                print(f"Required columns not found in {dl_csv_file}. Skipping chart {i + 1}.")
+
+        # Append the chart data for this CSV file to the list for all CSV files
+        ldvt_charts_data.append(csv_charts_data)
 
 
 
@@ -1714,7 +1691,6 @@ def home():
         weather_datas=weather_datas, laser_datas=laser_datas,
         temprature_meter_datas=temprature_meter_datas, 
         tilt_meter_datas=tilt_meter_datas, ldvt_datas=ldvt_datas,
-        chart_columns=chart_columns,
         shayam_bazar_viaduct_RHS_statistics_datas=shayam_bazar_viaduct_RHS_statistics_datas,
         shayam_bazar_viaduct_LHS_statistics_datas=shayam_bazar_viaduct_LHS_statistics_datas,
         P6_P7_BS1_LHS_statistics_datas=P6_P7_BS1_LHS_statistics_datas,
@@ -1728,5 +1704,7 @@ def home():
         P7_P8_BS4_additional_RHS_statistics_datas=P7_P8_BS4_additional_RHS_statistics_datas,
         chitpur_viaduct_RHS_statistics_datas=chitpur_viaduct_RHS_statistics_datas,
         chitpur_viaduct_LHS_statistics_datas=chitpur_viaduct_LHS_statistics_datas,
-        corrosion_data=corrosion_data
+        corrosion_data=corrosion_data,
+        laser_charts_data=laser_charts_data, ldvt_charts_data=ldvt_charts_data,
+        
     )
