@@ -308,6 +308,7 @@ def home():
     # -- SHOWING LINE CHART OF Laser Data --- #
     # --------------------------------------- #
     # Initialize arrays to store data for each chart
+    # Initialize an array to store data for each chart
     laser_charts_data = []
 
     # Iterate over the Deflection columns
@@ -317,9 +318,11 @@ def home():
 
         # Create data dictionary for this chart
         chart_data = {
-            "labels": list(laser_df['DateTime']),  # Assuming 'DateTime' is a column in 'laser_df'
-            "deflection_data": list(laser_df[deflection_column]),
-            "threshold_data": list(laser_df[threshold_column]),
+            f"ls{i}": [{
+                "labels": list(laser_df['DateTime']),  # Assuming 'DateTime' is a column in 'laser_df'
+                "deflection_data": list(laser_df[deflection_column]),
+                "threshold_data": list(laser_df[threshold_column]),
+            }],
             "chart_title": f"Laser Chart {i}",
             "y_axis_limits": [lower_limit, upper_limit],
             "y_axis_tick_positions": tick_positions
@@ -327,7 +330,6 @@ def home():
 
         # Append data dictionary to the array
         laser_charts_data.append(chart_data)
-
 
     ########## END Laser Data ##########
 
@@ -691,6 +693,7 @@ def home():
             if all(column in df.columns for column in columns):
                 # Create a dictionary to store chart data
                 chart_data = {
+                    "dl_name": dl_csv_file,
                     "chart_title": f"Chart {i + 1}",
                     "labels": list(df['DateTime']),
                     "datasets": []
