@@ -314,7 +314,7 @@ def home():
     # Iterate over the Deflection columns
     for i in range(1, 6):
         deflection_column = f"Deflection_{i}"
-        threshold_column = f"Threshold_LS{i}_Action"
+        threshold_column = f"Threshold_LS{i}_Alert"
 
         # Create data dictionary for this chart
         chart_data = {
