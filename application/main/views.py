@@ -32,39 +32,39 @@ laser_csv = "TallahROBLaser_Data_List.csv"
 
 accelerometers_csv = [
     "Tallah_ROB Accelerometer_3DACC1_A1_Approach -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC2_P6_P7_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC3_P6_P7_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC4_P7_P8_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC5_P7_P8_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC6_P9_CP2_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC7_P9_CP_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC8_A2_Approach -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC9_A3_Approach -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC01_A1_P1_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC02_A1_P1_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC03_P1_P2 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC04_P2_P3 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC05_P3_P4 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC06_P4_P5 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC07_P5_CP1 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC08_CP1_P6_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC09_CP1_P6_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC10_P8_P9_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC11_P8_P9_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC12_CP2_P10 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC13_P10_P11 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC14_P11_P12 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC15_P12_P13 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC16_P13_P14 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC17_P14_A2_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC18_P14_A2_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC19_A3_P21_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC20_A3_P21_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC21_P21_P20 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC22_P20_P19 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC23_P19_P18 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC24_P18_P17 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC25_P17_P16 -Data List13Jul23.csv"
+    "Tallah_ROB Accelerometer_3DACC2_P6_P7_RHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_3DACC3_P6_P7_LHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_3DACC4_P7_P8_RHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_3DACC5_P7_P8_LHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_3DACC6_P9_CP2_RHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_3DACC7_P9_CP_LHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_3DACC8_A2_Approach -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_3DACC9_A3_Approach -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC01_A1_P1_RHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC02_A1_P1_LHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC03_P1_P2 -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC04_P2_P3 -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC05_P3_P4 -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC06_P4_P5 -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC07_P5_CP1 -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC08_CP1_P6_RHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC09_CP1_P6_LHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC10_P8_P9_RHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC11_P8_P9_LHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC12_CP2_P10 -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC13_P10_P11 -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC14_P11_P12 -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC15_P12_P13 -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC16_P13_P14 -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC17_P14_A2_RHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC18_P14_A2_LHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC19_A3_P21_RHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC20_A3_P21_LHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC21_P21_P20 -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC22_P20_P19 -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC23_P19_P18 -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC24_P18_P17 -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_ACC25_P17_P16 -Data List13Jul23.csv"
 ]
 
 dl = [
@@ -334,56 +334,23 @@ def home():
     ########## END Laser Data ##########
 
 
-    # ########## START Temperature Meter Data ##########
-    # accelerometers_csv_files = accelerometers_csv
-    # # laser_df = pd.read_csv(laser_csv_file, skiprows=3)
-    # # laser_df.columns = laser_df.columns.str.strip()
-    # # Iterate over each CSV file
-    # for accelerometers_csv_file in accelerometers_csv_files:
-    #     # Read the CSV file into a DataFrame
-    #     accelerometers_df = pd.read_csv(accelerometers_csv_file, skiprows=3)
-    #     accelerometers_df.columns = accelerometers_df.columns.str.strip()
+    # ########## START Accelero Meter Data ##########
+    # Initialize a list to store data from all CSV files
+    accelerometers_charts_data = []
 
+    # Iterate over each CSV file
+    for csv_file in accelerometers_csv:
+        # Read the CSV file into a DataFrame
+        df = pd.read_csv(csv_file, skiprows=3)
 
-    #     # Get the column names excluding the "DateTime" column
-    #     columns = accelerometers_df.columns[1:]
-    #     print('---- columns ------')
-    #     print(columns)
+        # Create a dictionary to store data for this CSV file
+        csv_data = {
+            "csv_name": csv_file,  # Track the name of this CSV in the data
+            "data": df.to_dict(orient="list")
+        }
 
-    #     # Iterate over each column
-    #     for column in columns:
-    #         print(f'--> column: {column}')
-    #         # Create a new figure and axis for each chart
-    #         fig, ax = plt.subplots(figsize=(12, 6))
-
-    #         # Plot the line for the current column
-    #         ax.plot(accelerometers_df['DateTime'], accelerometers_df[column])
-
-    #         # Set labels and title
-    #         ax.set_xlabel('DateTime')
-    #         ax.set_ylabel(column)
-    #         ax.set_title(f'Accelerometers Chart - {column}')
-
-    #         # Rotate and align the datetime labels
-    #         # ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-    #         # ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
-    #         # plt.xticks(rotation=17, ha='right')
-
-    #         # Set custom y-axis limits
-    #         # ax.set_ylim(lower_limit, upper_limit)
-
-    #         # Set custom y-axis tick positions and labels
-    #         # ax.set_yticks(tick_positions)
-    #         # ax.set_yticklabels(tick_positions)
-
-    #         # Add legend
-    #         ax.legend()
-
-    #         # Save the chart as an image file
-    #         accelerometer_chart_filename = f"accelerometers_chart_{i}.png"
-    #         accelerometer_chart_filepath = os.path.join(chart_directory, accelerometer_chart_filename)
-    #         plt.savefig(accelerometer_chart_filepath, bbox_inches='tight')
-    #         plt.close()
+        # Append the data for this CSV file to the list for all CSV files
+        accelerometers_charts_data.append(csv_data)
     # ########## END Temperature Meter Data ##########
 
 
@@ -1707,7 +1674,7 @@ def home():
         P7_P8_BS4_additional_RHS_statistics_datas=P7_P8_BS4_additional_RHS_statistics_datas,
         chitpur_viaduct_RHS_statistics_datas=chitpur_viaduct_RHS_statistics_datas,
         chitpur_viaduct_LHS_statistics_datas=chitpur_viaduct_LHS_statistics_datas,
-        corrosion_data=corrosion_data,
+        corrosion_data=corrosion_data, accelerometers_charts_data=accelerometers_charts_data,
         laser_charts_data=laser_charts_data, ldvt_charts_data=ldvt_charts_data,
         
     )
