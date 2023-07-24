@@ -1045,13 +1045,16 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
 
         <!-- ======= START Graphical representation of Accelerometers ======= -->
         <div class="text-center">
-            <!-- {{laser_charts_data}} -->
+            {{laser_charts_data[1]}}
         </div>
-        <canvas id="myChart" style="width:100%; height: 60vh;;">></canvas>
+
+        <canvas id="ls1_Chart" style="width:100%; height: 60vh;;">></canvas>
+        <canvas id="ls2_Chart" style="width:100%; height: 60vh;;">></canvas>
+
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
         <script>
-            const ctx = document.getElementById('myChart').getContext('2d');
+            const ctx = document.getElementById('ls1_Chart').getContext('2d');
             const laser_chart_labels = {{ laser_charts_data[0]['ls1'][0]['labels'] | safe}};
             const myChart = new Chart(ctx, {
                 type: 'line',
@@ -1073,14 +1076,14 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                     options : {
                     scales : {
                         y : {
-                            min: -40,
-                            max: 40,
+                            min: {{laser_charts_data[1]['y_axis_limits'][0]}},
+                            max: {{laser_charts_data[1]['y_axis_limits'][1]}},
                         }
                     },
                     plugins: {
                title: {
                   display: true,
-                  text: 'Deflection_1 Threshold_LS1',
+                  text: 'Chart 1: Deflection_1 Threshold_LS1',
                   color: 'navy',
                   position: 'bottom',
                   align: 'center',
@@ -1095,6 +1098,50 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
             });
         </script>
 
+        <script>
+            const ctx2 = document.getElementById('ls2_Chart').getContext('2d');
+            const laser_chart2_labels = {{ laser_charts_data[1]['ls2'][0]['labels'] | safe}};
+            const myChart2 = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: laser_chart2_labels,
+                    datasets: [{
+                        data: {{laser_charts_data[1]['ls2'][0]['deflection_data']}},
+                        label: "Deflection Data",
+                        borderColor: "blue",
+                        fill: false
+                    }, {
+                        data: {{laser_charts_data[1]['ls2'][0]['threshold_data']}},
+                        label: "Threshold Data",
+                        borderColor: "red",
+                        fill: false
+                    }
+                    ]},
+
+                    options : {
+                    scales : {
+                        y : {
+                            min: {{laser_charts_data[1]['y_axis_limits'][0]}},
+                            max: {{laser_charts_data[1]['y_axis_limits'][1]}},
+                        }
+                    },
+                    plugins: {
+               title: {
+                  display: true,
+                  text: 'Chart 2: Deflection_1 Threshold_LS1',
+                  color: 'navy',
+                  position: 'bottom',
+                  align: 'center',
+                  font: {
+                     weight: 'bold'
+                  },
+                  padding: 8,
+                  fullSize: true,
+               }
+            }
+                }
+            });
+        </script>
 
         <!-- ======= END Graphical representation of Accelerometers ======= -->
         <!-- ====== END LVDT ========  -->
