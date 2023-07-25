@@ -1033,12 +1033,14 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
 
         <!-- ======= START Graphical representation of Accelerometers ======= -->
         <div class="text-center">
-            <!-- {{laser_charts_data}} -->
+            {{laser_charts_data[1]}}
         </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <!-- <canvas id="myChart" style="width:100%; height: 60vh;;"></canvas>
 
         <script>
-            const ctx = document.getElementById('myChart').getContext('2d');
+            const ctx = document.getElementById('ls1_Chart').getContext('2d');
             const laser_chart_labels = {{ laser_charts_data[0]['ls1'][0]['labels'] | safe}};
             const myChart = new Chart(ctx, {
                 type: 'line',
@@ -1067,7 +1069,7 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                     plugins: {
                title: {
                   display: true,
-                  text: 'Deflection_1 Threshold_LS1',
+                  text: 'Chart 1: Deflection_1 Threshold_LS1',
                   color: 'navy',
                   position: 'bottom',
                   align: 'center',
@@ -1162,8 +1164,6 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                 });
             });
         </script>
-
-
         <!-- ======= END Graphical representation of Accelerometers ======= -->
 
 
