@@ -5,6 +5,7 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
 {% endblock %}
 
 {% block styles %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
 <link href="https://printjs-4de6.kxcdn.com/print.min.css" rel="stylesheet" type="text/css" />
 {% endblock %}
@@ -342,15 +343,6 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                 </tbody>
             </table>
         </div>
-
-        <div class="text-center">
-            {% for i in range(1, 6) %}
-            <div class="py-5 my-3">
-                <img src="{{ url_for('static', filename='charts/laser_chart_' ~ i ~ '.png') }}" alt="Chart {{ i }}">
-            </div>
-            {% endfor %}
-        </div>
-
         <!-- ======= START Obserbation Section ======= -->
         <div class="Observations-section">
             <h5>
@@ -524,14 +516,10 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
 
 
         <!-- ======= START Graphical representation of Accelerometers ======= -->
-        <div class="text-center">
-            {% for i in range(1, 6) %}
-            <div class="py-5 my-3">
-                <img src="{{ url_for('static', filename='charts/accelerometers_chart_' ~ i ~ '.png') }}"
-                    alt="Chart {{ i }}">
-            </div>
-            {% endfor %}
-        </div>
+
+
+
+
         <!-- ======= END Graphical representation of Accelerometers ======= -->
 
 
@@ -1047,8 +1035,7 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
         <div class="text-center">
             <!-- {{laser_charts_data}} -->
         </div>
-        <canvas id="myChart" style="width:100%; height: 60vh;;">></canvas>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- <canvas id="myChart" style="width:100%; height: 60vh;;"></canvas>
 
         <script>
             const ctx = document.getElementById('myChart').getContext('2d');
@@ -1093,10 +1080,93 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
             }
                 }
             });
+        </script>  -->
+
+
+
+        <!-- Add this container to hold multiple charts -->
+        <div id="chart-container"></div>
+
+        <script>
+            // Access the container where the charts will be displayed
+            const chartContainer = document.getElementById('chart-container');
+
+            // Loop through each chart data in the 'laser_charts_data' array
+            const laserChartsData = {{ laser_charts_data | safe }};
+            laserChartsData.forEach((chartData, index) => {
+                const chartId = chartData.chart_id;
+                const chartTitle = chartData.chart_title;
+                const laser_chart_labels = chartData.labels;
+                const deflection_data = chartData.deflection_data;
+                const threshold_data = chartData.threshold_data;
+
+                console.log('---------')
+                console.log(index)
+                console.log(chartData)
+                console.log('---------')
+
+                // Create a canvas element for the current chart
+                const canvasElement = document.createElement('canvas');
+                canvasElement.id = chartId;
+                canvasElement.style.width = '100%';
+                canvasElement.style.height = '60vh';
+
+                // Append the canvas element to the chart container
+                chartContainer.appendChild(canvasElement);
+
+                // Get the context for the current chart
+                const ctx = canvasElement.getContext('2d');
+
+                // Create the chart instance for the current chart
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: laser_chart_labels,
+                        datasets: [
+                            {
+                                data: deflection_data,
+                                label: "Deflection Data",
+                                borderColor: "blue",
+                                fill: false
+                            },
+                            {
+                                data: threshold_data,
+                                label: "Threshold Data",
+                                borderColor: "red",
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            y : {
+                                min: -40,
+                                max: 40,
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: chartTitle,
+                                color: 'navy',
+                                position: 'bottom',
+                                align: 'center',
+                                font: {
+                                    weight: 'bold'
+                                },
+                                padding: 8,
+                                fullSize: true
+                            }
+                        }
+                    }
+                });
+            });
         </script>
 
 
         <!-- ======= END Graphical representation of Accelerometers ======= -->
+
+
         <!-- ====== END LVDT ========  -->
 
         <!-- ======= START LVDT =======  -->

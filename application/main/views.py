@@ -307,7 +307,6 @@ def home():
     # --------------------------------------- #
     # -- SHOWING LINE CHART OF Laser Data --- #
     # --------------------------------------- #
-    # Initialize arrays to store data for each chart
     # Initialize an array to store data for each chart
     laser_charts_data = []
 
@@ -323,9 +322,8 @@ def home():
                 "deflection_data": list(laser_df[deflection_column]),
                 "threshold_data": list(laser_df[threshold_column]),
             }],
+            "chart_id": f"laser_chart_{i}",
             "chart_title": f"Laser Chart {i}",
-            "y_axis_limits": [lower_limit, upper_limit],
-            "y_axis_tick_positions": tick_positions
         }
 
         # Append data dictionary to the array
@@ -1675,6 +1673,5 @@ def home():
         chitpur_viaduct_RHS_statistics_datas=chitpur_viaduct_RHS_statistics_datas,
         chitpur_viaduct_LHS_statistics_datas=chitpur_viaduct_LHS_statistics_datas,
         corrosion_data=corrosion_data, accelerometers_charts_data=accelerometers_charts_data,
-        laser_charts_data=laser_charts_data, ldvt_charts_data=ldvt_charts_data,
-        
+        laser_charts_data=laser_charts_data, ldvt_charts_data=ldvt_charts_data
     )
