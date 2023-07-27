@@ -1032,16 +1032,15 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
         </div>
 
         <!-- ======= START Graphical representation of Accelerometers ======= -->
-        <div class="text-center">
-            {{laser_charts_data[1]}}
-        </div>
-
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <!-- <canvas id="myChart" style="width:100%; height: 60vh;;"></canvas>
 
         <script>
-            const ctx = document.getElementById('ls1_Chart').getContext('2d');
+            const ctx = document.getElementById('myChart').getContext('2d');
             const laser_chart_labels = {{ laser_charts_data[0]['ls1'][0]['labels'] | safe}};
+
+            console.log({{laser_charts_data[0]['ls1'][0]['deflection_data']}})
+            console.log({{laser_charts_data[0]['ls1'][0]['threshold_data']}})
+
             const myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -1090,21 +1089,39 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
         <div id="chart-container"></div>
 
         <script>
+            // Loop through each chart data in the 'laser_charts_data' array
+            const laserChartsData = {{ laser_charts_data | safe }};
+        </script>
+
+        <script>
+            // Function to extract deflection and threshold values
+            function extractDeflectionAndThresholdData(laserChartsData) {
+                const result = [];
+
+                for (const chartData of laserChartsData) {
+                    const { deflection_data, threshold_data } = Object.values(chartData)[0][0];
+                    result.push({ deflection_data, threshold_data });
+                }
+
+                return result;
+            }
+
             // Access the container where the charts will be displayed
             const chartContainer = document.getElementById('chart-container');
 
-            // Loop through each chart data in the 'laser_charts_data' array
-            const laserChartsData = {{ laser_charts_data | safe }};
             laserChartsData.forEach((chartData, index) => {
                 const chartId = chartData.chart_id;
                 const chartTitle = chartData.chart_title;
                 const laser_chart_labels = chartData.labels;
-                const deflection_data = chartData.deflection_data;
-                const threshold_data = chartData.threshold_data;
+
+                // Extract deflection and threshold data for each chart
+                const { deflection_data, threshold_data } = extractDeflectionAndThresholdData([chartData])[0];
 
                 console.log('---------')
-                console.log(index)
-                console.log(chartData)
+                console.log({ deflection_data, threshold_data })
+                console.log('---------')
+                console.log(deflection_data)
+                console.log(threshold_data)
                 console.log('---------')
 
                 // Create a canvas element for the current chart
@@ -1119,8 +1136,7 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                 // Get the context for the current chart
                 const ctx = canvasElement.getContext('2d');
 
-                // Create the chart instance for the current chart
-                new Chart(ctx, {
+                const myChart = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: laser_chart_labels,
@@ -1130,8 +1146,7 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                                 label: "Deflection Data",
                                 borderColor: "blue",
                                 fill: false
-                            },
-                            {
+                            }, {
                                 data: threshold_data,
                                 label: "Threshold Data",
                                 borderColor: "red",
@@ -1139,17 +1154,12 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                             }
                         ]
                     },
+
                     options: {
-                        scales: {
-                            y : {
-                                min: -40,
-                                max: 40,
-                            }
-                        },
                         plugins: {
                             title: {
                                 display: true,
-                                text: chartTitle,
+                                text: 'Chart 1: Deflection_1 Threshold_LS1',
                                 color: 'navy',
                                 position: 'bottom',
                                 align: 'center',
@@ -1157,11 +1167,52 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                                     weight: 'bold'
                                 },
                                 padding: 8,
-                                fullSize: true
+                                fullSize: true,
                             }
                         }
                     }
                 });
+
+                console.log(mychs)
+
+                // Create the chart instance for the current chart
+                // new Chart(ctx, {
+                //     type: 'line',
+                //     data: {
+                //         labels: laser_chart_labels,
+                //         datasets: [
+                //             {
+                //                 data: deflection_data,
+                //                 label: "Deflection Data",
+                //                 borderColor: "blue",
+                //                 fill: false
+                //             },
+                //             {
+                //                 data: threshold_data,
+                //                 label: "Threshold Data",
+                //                 borderColor: "red",
+                //                 fill: false
+                //             }
+                //         ]
+                //     },
+                //     options: {
+                //         responsive: true,
+                //         plugins: {
+                //             title: {
+                //                 display: true,
+                //                 text: chartTitle,
+                //                 color: 'navy',
+                //                 position: 'bottom',
+                //                 align: 'center',
+                //                 font: {
+                //                     weight: 'bold'
+                //                 },
+                //                 padding: 8,
+                //                 fullSize: true
+                //             }
+                //         }
+                //     }
+                // });
             });
         </script>
         <!-- ======= END Graphical representation of Accelerometers ======= -->
