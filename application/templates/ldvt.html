@@ -1,17 +1,53 @@
 {% extends "root.html" %}
-
 {% block title %}
-    BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
+BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
 {% endblock %}
-
 {% block styles %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
-    <link href="https://printjs-4de6.kxcdn.com/print.min.css"
-          rel="stylesheet"
-          type="text/css" />
-{% endblock %}
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
 {% block content %}
-{{ ldvt_charts_data | safe }}
+<!-- <script>
+    const ldvt_chart_data = {{ ldvt_charts_data | safe }}
+    console.log( ldvt_chart_data[0][0] )
+    console.log('-----')
+    </script> -->
+{% for csv_charts_data in ldvt_charts_data %}
+<h2>Charts for {{ csv_charts_data[0]['dl_name'] }}</h2>
+{% for chart_data in csv_charts_data %}
+<div>
+    <h3>{{ chart_data['chart_title'] }}</h3>
+    <canvas id="{{ chart_data['canvas_id'] }}"></canvas>
+</div>
+<script>
+    // Get chart data from the backend
+    const labels = {{ chart_data['labels']| tojson }};
+    const datasets = {{ chart_data['datasets']| tojson }};
+
+    // Create a new Chart instance for each chart
+    const ctx = document.getElementById('{{ chart_data['canvas_id'] }}').getContext('2d');
+    new Chart(ctx, {
+        type: 'line', // Change this to the desired chart type (e.g., 'bar', 'pie', etc.)
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: "a chart title",
+                    color: 'navy',
+                    position: 'bottom',
+                    align: 'center',
+                    font: {
+                        weight: 'bold'
+                    },
+                    padding: 8,
+                    fullSize: true,
+                }
+            }
+        }
+    });
+</script>
+{% endfor %}
+{% endfor %}
 {% endblock %}

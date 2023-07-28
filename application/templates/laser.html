@@ -1,14 +1,13 @@
 {% extends "root.html" %}
+
 {% block title %}
     BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
 {% endblock %}
+
 {% block styles %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
-    <link href="https://printjs-4de6.kxcdn.com/print.min.css"
-          rel="stylesheet"
-          type="text/css" />
 {% endblock %}
+
 {% block content %}
     <!-- Add this container to hold multiple charts -->
     <div id="chart-container"></div>

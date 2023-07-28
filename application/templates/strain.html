@@ -1,0 +1,16 @@
+{% extends "root.html" %}
+
+{% block title %}
+    BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
+{% endblock %}
+
+{% block styles %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<script>
+    console.log({{ strain_charts_data | safe }})
+</script>
+{% endblock %}

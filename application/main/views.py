@@ -13,6 +13,8 @@
 
 import os
 import re
+import random
+import string
 import datetime
 import numpy as np
 import pandas as pd
@@ -77,20 +79,271 @@ dl = [
 ]
 
 corrosion_csv = "Tallah_Corrosion_Current-DataList.csv"
+
+################ START - GLOBAL COLUMN NAME DEFINED ################
+# Define the columns for analysis
+shayam_bazar_viaduct_RHS_columns = [
+    "A1_RBLG_SG_1_Strain",
+    "SA1P1_RBLG_SG_1_Strain",
+    "SP1P2_RBLG_SG_1_Strain",
+    "SP2P3_RBLG_SG_1_Strain",
+    "SP3P4_RBLG_SG_1_Strain",
+    "SP4P5_RBLG_SG_1_Strain",
+    "SP5CP1_RBLG_SG_1_Strain"
+]
+
+shayam_bazar_viaduct_LHS_columns = [
+    "A1_LBLG_SG_2_Strain",
+    "SA1P1_LBLG_SG_2_Strain",
+    "SP1P2_LBLG_SG_2_Strain",
+    "SP2P3_LBLG_SG_2_Strain",
+    "SP3P4_LBLG_SG_2_Strain",
+    "SP4P5_LBLG_SG_2_Strain",
+    "SP5CP1_LBLG_SG_2_Strain"
+]
+
+# Define the columns for analysis
+P6_P7_BS1_LHS_columns = [
+    "SP6P7_BS1R_HAJ_SG_1_Strain",
+    "SP6P7_BS1R_HAJ_SG_2_Strain",
+    "SP6P7_BS1R_HAJ_SG_3_Strain",
+    "SP6P7_BS1R_AAJ_SG_1_Strain",
+    "SP6P7_BS1R_AAJ_SG_2_Strain",
+    "SP6P7_BS1R_AAJ_SG_3_Strain",
+    "SP6P7_BS1R_HBLBJ_SG1_Strain",
+    "SP6P7_BS1R_HBLBJ_SG2_Strain",
+    "SP6P7_BS1R_HBLBJ_SG3_Strain",
+    "SP6P7_BS1R_BLBJ_SG_1_Strain",
+    "SP6P7_BS1R_BLBJ_SG_2_Strain",
+    "SP6P7_BS1R_BLBJ_SG_3_Strain",
+    "SP6P7_BS1L_HAJ_SG_1_Strain",
+    "SP6P7_BS1L_HAJ_SG_2_Strain",
+    "SP6P7_BS1L_HAJ_SG_3_Strain",
+    "SP6P7_BS1L_AAJ_SG_1_Strain",
+    "SP6P7_BS1L_AAJ_SG_2_Strain",
+    "SP6P7_BS1L_AAJ_SG_3_Strain",
+    "SP6P7_BS1L_HBLBJ_SG1_Strain",
+    "SP6P7_BS1L_HBLBJ_SG2_Strain",
+    "SP6P7_BS1L_HBLBJ_SG3_Strain",
+    "SP6P7_BS1L_BLBJ_SG_1_Strain",
+    "SP6P7_BS1L_BLBJ_SG_2_Strain",
+    "SP6P7_BS1L_BLBJ_SG3_Strain",
+    "P6_BS1L_NJ_SG_1_Strain",
+    "P6_BS1R_NJ_SG_2_Strain",
+    "P7_BS1L_NJ_SG_3_Strain",
+    "P7_BS1R_NJ_SG_4_Strain"
+]
+
+# Define the columns for analysis
+P6_P7_BS3_LHS_columns = [
+    "SP7P8_BS3R_HAJ_SG_1_Strain",
+    "SP7P8_BS3R_HAJ_SG_2_Strain",
+    "SP7P8_BS3R_HAJ_SG_3_Strain",
+    "SP7P8_BS3R_AAJ_SG_1_Strain",
+    "SP7P8_BS3R_AAJ_SG_2_Strain",
+    "SP7P8_BS3R_AAJ_SG_3_Strain",
+    "SP7P8_BS3R_HBLBJ_SG1_Strain",
+    "SP7P8_BS3R_HBLBJ_SG2_Strain",
+    "SP7P8_BS3R_HBLBJ_SG3_Strain",
+    "SP7P8_BS3R_BLBJ_SG_1_Strain",
+    "SP7P8_BS3R_BLBJ_SG_2_Strain",
+    "SP7P8_BS3R_BLBJ_SG_3_Strain",
+    "SP7P8_BS3L_HAJ_SG_1_Strain",
+    "SP7P8_BS3L_HAJ_SG_2_Strain",
+    "SP7P8_BS3L_HAJ_SG_3_Strain",
+    "SP7P8_BS3L_AAJ_SG_1_Strain",
+    "SP7P8_BS3L_AAJ_SG_2_Strain",
+    "SP7P8_BS3L_AAJ_SG_3_Strain",
+    "SP7P8_BS3L_HBLBJ_SG1_Strain",
+    "SP7P8_BS3L_HBLBJ_SG2_Strain",
+    "SP7P8_BS3L_HBLBJ_SG3_Strain",
+    "SP7P8_BS3L_BLBJ_SG_1_Strain",
+    "SP7P8_BS3L_BLBJ_SG_2_Strain",
+    "SP7P8_BS3L_BLBJ_SG_3_Strain",
+    "P7_BS3L_NJ_SG_1_Strain",
+    "P7_BS3R_NJ_SG_2_Strain",
+    "P8_BS3L_NJ_SG_3_Strain"
+]
+
+# Define the columns for analysis
+P6_P7_BS5_LHS_columns = [
+    "SP9CP2_BS5R_HAJ_SG_1_Strain",
+    "SP9CP2_BS5R_HAJ_SG_2_Strain",
+    "SP9CP2_BS5R_HAJ_SG_3_Strain",
+    "SP9CP2_BS5R_AAJ_SG_1_Strain",
+    "SP9CP2_BS5R_AAJ_SG_2_Strain",
+    "SP9CP2_BS5R_AAJ_SG_3_Strain",
+    "SP9CP2_BS5R_HBLBJSG1_Strain",
+    "SP9CP2_BS5R_HBLBJSG2_Strain",
+    "SP9CP2_BS5R_HBLBJSG3_Strain",
+    "SP9CP2_BS5R_BLBJ_SG1_Strain",
+    "SP9CP2_BS5R_BLBJ_SG2_Strain",
+    "SP9CP2_BS5R_BLBJ_SG3_Strain",
+    "SP9CP2_BS5L_HAJ_SG1_Strain",
+    "SP9CP2_BS5L_HAJ_SG2_Strain",
+    "SP9CP2_BS5L_HAJ_SG3_Strain",
+    "SP9CP2_BS5L_AAJ_SG1_Strain",
+    "SP9CP2_BS5L_AAJ_SG2_Strain",
+    "SP9CP2_BS5L_AAJ_SG3_Strain",
+    "SP9CP2_BS5L_HBLBJSG1_Strain",
+    "SP9CP2_BS5L_HBLBJSG2_Strain",
+    "SP9CP2_BS5L_HBLBJSG3_Strain",
+    "SP9CP2_BS5L_BLBJSG1_Strain",
+    "SP9CP2_BS5L_BLBJSG2_Strain",
+    "SP9CP2_BS5L_BLBJSG3_Strain",
+    "P9_BS5L_NJ_SG_1_Strain",
+    "P9_BS5R_NJ_SG_2_Strain",
+    "CP2_BS5L_NJ_SG_3_Strain",
+    "CP2_BS5R_NJ_SG_4_Strain"
+]
+
+# Define the columns for analysis
+P6_P7_BS2_RHS_columns = [
+    "SP6P7_BS2L_HAJ_SG_1_Strain",
+    "SP6P7_BS2L_HAJ_SG_2_Strain",
+    "SP6P7_BS2L_HAJ_SG_3_Strain",
+    "SP6P7_BS2L_AAJ_SG_1_Strain",
+    "SP6P7_BS2L_AAJ_SG_2_Strain",
+    "SP6P7_BS2L_AAJ_SG_3_Strain",
+    "SP6P7_BS2L_HBLBJ_SG1_Strain",
+    "SP6P7_BS2L_HBLBJ_SG2_Strain",
+    "SP6P7_BS2L_HBLBJ_SG3_Strain",
+    "SP6P7_BS2L_BLBJ_SG_1_Strain",
+    "SP6P7_BS2L_BLBJ_SG_2_Strain",
+    "SP6P7_BS2L_BLBJ_SG_3_Strain",
+    "SP6P7_BS2R_HAJ_SG_1_Strain",
+    "SP6P7_BS2R_HAJ_SG_2_Strain",
+    "SP6P7_BS2R_HAJ_SG_3_Strain",
+    "SP6P7_BS2R_AAJ_SG_1_Strain",
+    "SP6P7_BS2R_AAJ_SG_2_Strain",
+    "SP6P7_BS2R_AAJ_SG_3_Strain",
+    "SP6P7_BS2R_HBLBJ_SG1_Strain",
+    "SP6P7_BS2R_HBLBJ_SG2_Strain",
+    "SP6P7_BS2R_HBLBJ_SG3_Strain",
+    "SP6P7_BS2R_BLBJ_SG_1_Strain",
+    "SP6P7_BS2R_BLBJ_SG_2_Strain",
+    "SP6P7_BS2R_BLBJ_SG_3_Strain",
+    "P6_BS2L_NJ_SG_1_Strain",
+    "P6_BS2R_NJ_SG_2_Strain",
+    "P7_BS2L_NJ_SG_3_Strain",
+    "P7_BS2R_NJ_SG_4_Strain"
+]
+
+# Define the columns for analysis
+P6_P7_BS4_RHS_columns = [
+    "SP7P8_BS4L_HAJ_SG_1_Strain",
+    "SP7P8_BS4L_HAJ_SG_2_Strain",
+    "SP7P8_BS4L_HAJ_SG_3_Strain",
+    "SP7P8_BS4L_AAJ_SG_1_Strain",
+    "SP7P8_BS4L_AAJ_SG_2_Strain",
+    "SP7P8_BS4L_AAJ_SG_3_Strain",
+    "SP7P8_BS4L_HBLBJ_SG1_Strain",
+    "SP7P8_BS4L_HBLBJ_SG2_Strain",
+    "SP7P8_BS4L_HBLBJ_SG3_Strain",
+    "SP7P8_BS4L_BLBJ_SG_1_Strain",
+    "SP7P8_BS4L_BLBJ_SG_2_Strain",
+    "SP7P8_BS4L_BLBJ_SG_3_Strain",
+    "SP7P8_BS4R_HAJ_SG_1_Strain",
+    "SP7P8_BS4R_HAJ_SG_2_Strain",
+    "SP7P8_BS4R_HAJ_SG_3_Strain",
+    "SP7P8_BS4R_AAJ_SG_1_Strain",
+    "SP7P8_BS4R_AAJ_SG_2_Strain",
+    "SP7P8_BS4R_AAJ_SG_3_Strain",
+    "SP7P8_BS4R_HBLBJ_SG1_Strain",
+    "SP7P8_BS4R_HBLBJ_SG2_Strain",
+    "SP7P8_BS4R_HBLBJ_SG3_Strain",
+    "SP7P8_BS4R_BLBJ_SG_1_Strain",
+    "SP7P8_BS4R_BLBJ_SG_2_Strain",
+    "SP7P8_BS4R_BLBJ_SG_3_Strain",
+    "P7_BS4L_NJ_SG_1_Strain",
+    "P7_BS4R_NJ_SG_2_Strain",
+    "P8_BS4L_NJ_SG_3_Strain",
+    "P8_BS4R_NJ_SG_4_Strain"
+]
+
+# Define the columns for analysis
+P6_P7_BS6_RHS_columns = [
+    "SP9CP2_BS6L_HAJ_SG_1_Strain",
+    "SP9CP2_BS6L_HAJ_SG_2_Strain",
+    "SP9CP2_BS6L_HAJ_SG_3_Strain",
+    "SP9CP2_BS6L_AAJ_SG_1_Strain",
+    "SP9CP2_BS6L_AAJ_SG_2_Strain",
+    "SP9CP2_BS6L_AAJ_SG_3_Strain",
+    "SP9CP2_BS6L_HBLBJSG1_Strain",
+    "SP9CP2_BS6L_HBLBJSG2_Strain",
+    "SP9CP2_BS6L_HBLBJSG3_Strain",
+    "SP9CP2_BS6L_BLBJ_SG1_Strain",
+    "SP9CP2_BS6L_BLBJ_SG2_Strain",
+    "SP9CP2_BS6L_BLBJ_SG3_Strain",
+    "SP9CP2_BS6R_HAJ_SG_1_Strain",
+    "SP9CP2_BS6R_HAJ_SG_2_Strain",
+    "SP9CP2_BS6R_HAJ_SG_3_Strain",
+    "SP9CP2_BS6R_AAJ_SG1_Strain",
+    "SP9CP2_BS6R_AAJ_SG_2_Strain",
+    "SP9CP2_BS6R_AAJ_SG_3_Strain",
+    "SP9CP2_BS6R_HBLBJSG1_Strain",
+    "SP9CP2_BS6R_HBLBJSG2_Strain",
+    "SP9CP2_BS6R_HBLBJSG3_Strain",
+    "SP9CP2_BS6R_BLBJSG1_Strain",
+    "SP9CP2_BS6R_BLBJSG2_Strain",
+    "SP9CP2_BS6R_BLBJSG3_Strain",
+    "P9_BS6L_NJ_SG_1_Strain",
+    "P9_BS6R_NJ_SG_2_Strain",
+    "CP2_BS6L_NJ_SG_3_Strain",
+    "CP2_BS6R_NJ_SG_4_Strain"
+]
+
+# Define the columns for analysis
+dunlop_Viaduct_RHS_columns = [
+    "SCP2P10_RBLG_SG_1_Strain",
+    "SP10P11_RBLG_SG_1_Strain",
+    "SP11P12_RBLG_SG_1_Strain",
+    "SP12P13_RBLG_SG_1_Strain",
+    "SP13P14_RBLG_SG_1_Strain",
+    "SP14A2_RBLG_SG_1_Strain",
+    "A2_RBLG_SG_1_Strain"
+]
+
+dunlop_Viaduct_LHS_columns = [
+    "SCP2P10_LBLG_SG_2_Strain",
+    "SP10P11_LBLG_SG_2_Strain",
+    "SP11P12_LBLG_SG_2_Strain",
+    "SP12P13_LBLG_SG_2_Strain",
+    "SP13P14_LBLG_SG_2_Strain",
+    "SP14A2_LBLG_SG_2_Strain",
+    "A2_LBLG_SG_2_Strain"
+]
+
+# Define the columns for analysis
+P7_P8_BS4_additional_RHS_columns = [
+    "SP7P8_BS4L_HBLBJ_SG4_Strain",
+    "Additional_SG13_Strain",
+    "Additional_SG14_Strain"
+]
+
+# Define the columns for analysis
+chitpur_viaduct_RHS_columns = [
+    "SP16P17_RBLG_SG_1_Strain",
+    "SP17P18_RBLG_SG_1_Strain",
+    "SP18P19_RBLG_SG_1_Strain",
+    "SP19P20_RBLG_SG_1_Strain",
+    "SP20P21_RBLG_SG_1_Strain",
+    "SP21A3_RBLG_SG_1_Strain",
+    "A3_RBLG_SG_1_Strain"
+]
+
+chitpur_viaduct_LHS_columns = [
+    "SP16P17_LBLG_SG_2_Strain",
+    "SP17P18_LBLG_SG_2_Strain",
+    "SP18P19_LBLG_SG_2_Strain",
+    "SP19P20_LBLG_SG_2_Strain",
+    "SP20P21_LBLG_SG_2_Strain",
+    "SP21A3_LBLG_SG_2_Strain",
+    "A3_LBLG_SG_2_Strain"
+]
+################ END - GLOBAL COLUMN NAME DEFINED ################
+
 ################ START - SAVE THE LINE CHART ################
-
-# Directory to save the generated charts
-chart_directory = "application/static/charts/"
-
-# Check if the chart directory exists and contains files
-if os.path.exists(chart_directory) and os.listdir(chart_directory):
-    # Clear the chart directory
-    for filename in os.listdir(chart_directory):
-        file_path = os.path.join(chart_directory, filename)
-        os.unlink(file_path)
-
-
-
 # Define the desired lower and upper limits of the y-axis
 lower_limit = -50
 upper_limit = 50
@@ -101,6 +354,13 @@ tick_spacing = 5
 # Calculate the tick positions based on the desired tick spacing
 tick_positions = np.arange(lower_limit, upper_limit+1, tick_spacing)
 ################ END - SAVE THE LINE CHART ################
+
+
+# Function to generate a random ID
+def generate_random_id():
+    length = 8
+    characters = string.ascii_letters + string.digits
+    return ''.join(random.choice(characters) for i in range(length))
 
 
 @main.route("/")
@@ -311,8 +571,6 @@ def home():
     temprature_meter_csv_files = [
         dl[1],
         dl[3]
-        # "Tallah_ROB_P6_P8_DL2-DataList23Jun23.csv",
-        # "Tallah_ROB_P9_A2_DL4-DataList23Jun23.csv"
     ]
 
     # Define the columns for analysis
@@ -367,8 +625,6 @@ def home():
     tilt_meter_csv_files = [
         dl[0],
         dl[3]
-        # "Tallah_ROB_A1_P7_DL1-DataList23Jun23.csv",
-        # "Tallah_ROB_P9_A2_DL4-DataList23Jun23.csv"
     ]
 
     # Define the columns for analysis
@@ -425,12 +681,7 @@ def home():
         dl[1],
         dl[2],
         dl[3],
-        dl[4],
-        # "Tallah_ROB_A1_P7_DL1-DataList23Jun23.csv",
-        # "Tallah_ROB_P6_P8_DL2-DataList23Jun23.csv",
-        # "Tallah_ROB_P7_CP2_DL3-DataList23Jun23.csv",
-        # "Tallah_ROB_P9_A2_DL4-DataList23Jun23.csv",
-        # "Tallah_ROB_P16_A3_DL5-DataList23Jun23.csv"
+        dl[4]
     ]
 
     # Define Threshold value for LVDT
@@ -536,135 +787,6 @@ def home():
     ldvt_datas = pd.DataFrame(ldvt_statistics)
 
 
-    # df = pd.read_csv(ldvt_csv_files[0], skiprows=3)
-    # df.columns = df.columns.str.strip()
-
-    # chart_types = ['P3', 'P4']
-    # columns = [
-    #     'Displacement', 
-    #     'D1_D8_Alert_Positive', 
-    #     'D1_D8_Alert_Negative', 
-    #     'D1_D8_Action_Positive', 
-    #     'D1_D8_Action_Negative', 
-    #     'D1_D8_Alarm_Positive', 
-    #     'D1_D8_Alarm_Negative'
-    # ]
-
-    # for chart_type in chart_types:
-    #     for i in range(1, 8):
-    #         # Create a new figure and axis for each chart
-    #         fig, ax = plt.subplots(figsize=(12, 6))
-
-    #         # Set the displacement column name dynamically
-    #         displacement_column = f"{chart_type}_D{i}_Displacement"
-
-    #         # Plot the displacement data
-    #         ax.plot(df['DateTime'], df[displacement_column], color='b', label=displacement_column)
-
-    #         # Iterate over the remaining columns
-    #         for column in columns[1:]:
-    #             # Set the column name dynamically
-    #             chart_column = f"{chart_type}_{column}"
-
-    #             # Plot the data
-    #             ax.plot(df['DateTime'], df[chart_column], label=chart_column)
-
-    #         # Set labels and title
-    #         ax.set_xlabel('DateTime')
-    #         ax.set_ylabel('Value')
-    #         ax.set_title(f'{chart_type} Chart {i}')
-
-    #         # Rotate and align the datetime labels
-    #         ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-    #         ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
-    #         plt.xticks(rotation=17, ha='right')
-
-    #         # Customize other chart properties as needed
-
-    #         # Add legend
-    #         ax.legend()
-
-    #         # Save the chart as an image file
-    #         chart_filename = f"{chart_type.lower()}_chart_{i}.png"
-    #         chart_filepath = os.path.join(chart_directory, chart_filename)
-    #         plt.savefig(chart_filepath, bbox_inches='tight')
-    #         plt.close()
-
-
-    # Iterate over the Deflection columns
-    # for i in range(1, 8):
-    #     # Create a new figure and axis for each chart
-    #     fig, ax = plt.subplots(figsize=(12, 6))
-
-    #     # ========= START P3 ========= 
-    #     #   P3 CHARTS FOR D1 TO D7
-    #     p3_displacement_column = f"P3_D{i}_Displacement"
-    #     P3_D1_D8_Alert_Positive_column = "P3_D1_D8_Alert_Positive"
-    #     P3_D1_D8_Alert_Negative_column = "P3_D1_D8_Alert_Negative"
-    #     P3_D1_D8_Action_Positive_column = "P3_D1_D8_Action_Positive"
-    #     P3_D1_D8_Action_Negative_column = "P3_D1_D8_Action_Negative"
-    #     P3_D1_D8_Alarm_Positive_column = "P3_D1_D8_Alarm_Positive"
-    #     P3_D1_D8_Alarm_Negative_column = "P3_D1_D8_Alarm_Negative"
-
-    #     # P3 Plot the Deflection and Threshold lines
-    #     ax.plot(df['DateTime'], df[p3_displacement_column], color='b', label=f'P3_D{i}_Displacement')
-    #     ax.plot(df['DateTime'], df[P3_D1_D8_Alert_Positive_column], color='g', label='P3_D1_D8_Alert_Positive')
-    #     ax.plot(df['DateTime'], df[P3_D1_D8_Alert_Negative_column], color='g', label='P3_D1_D8_Alert_Negative')
-    #     ax.plot(df['DateTime'], df[P3_D1_D8_Action_Positive_column], color='y', label='P3_D1_D8_Action_Positive')
-    #     ax.plot(df['DateTime'], df[P3_D1_D8_Action_Negative_column], color='y', label='P3_D1_D8_Action_Negative')
-    #     ax.plot(df['DateTime'], df[P3_D1_D8_Alarm_Positive_column], color='r', label='P3_D1_D8_Alarm_Positive')
-    #     ax.plot(df['DateTime'], df[P3_D1_D8_Alarm_Negative_column], color='r', label='P3_D1_D8_Alarm_Negative') 
-    #     # ========= END P3 =========
-
-    #     # ========= START P4 ========= 
-    #     #   P3 CHARTS FOR D1 TO D7
-    #     p4_displacement_column = f"P4_D{i}_Displacement"
-    #     P4_D1_D8_Alert_Positive_column = "P4_D1_D8_Alert_Positive"
-    #     P4_D1_D8_Alert_Negative_column = "P4_D1_D8_Alert_Negative"
-    #     P4_D1_D8_Action_Positive_column = "P4_D1_D8_Action_Positive"
-    #     P4_D1_D8_Action_Negative_column = "P4_D1_D8_Action_Negative"
-    #     P4_D1_D8_Alarm_Positive_column = "P4_D1_D8_Alarm_Positive"
-    #     P4_D1_D8_Alarm_Negative_column = "P4_D1_D8_Alarm_Negative"
-
-    #     # P4 Plot the Deflection and Threshold lines
-    #     ax.plot(df['DateTime'], df[p4_displacement_column], color='b', label=f'P4_D{i}_Displacement')
-    #     ax.plot(df['DateTime'], df[P4_D1_D8_Alert_Positive_column], color='g', label='P4_D1_D8_Alert_Positive')
-    #     ax.plot(df['DateTime'], df[P4_D1_D8_Alert_Negative_column], color='g', label='P4_D1_D8_Alert_Negative')
-    #     ax.plot(df['DateTime'], df[P4_D1_D8_Action_Positive_column], color='y', label='P4_D1_D8_Action_Positive')
-    #     ax.plot(df['DateTime'], df[P4_D1_D8_Action_Negative_column], color='y', label='P4_D1_D8_Action_Negative')
-    #     ax.plot(df['DateTime'], df[P4_D1_D8_Alarm_Positive_column], color='r', label='P4_D1_D8_Alarm_Positive')
-    #     ax.plot(df['DateTime'], df[P4_D1_D8_Alarm_Negative_column], color='r', label='P4_D1_D8_Alarm_Negative') 
-    #     # ========= END P4 =========
-
-    #     # Set labels and title
-    #     ax.set_xlabel('DateTime')
-    #     ax.set_ylabel('Value')
-    #     ax.set_title(f'LVDT Chart {i}')
-
-    #     # Rotate and align the datetime labels
-    #     ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-    #     ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
-    #     plt.xticks(rotation=17, ha='right')
-    
-    #     # Set custom y-axis limits
-    #     ax.set_ylim(lower_limit, upper_limit)
-
-    #     # Set custom y-axis tick positions and labels
-    #     ax.set_yticks(tick_positions)
-    #     ax.set_yticklabels(tick_positions)
-
-    #     # Add legend
-    #     ax.legend()
-
-    #     # Save the chart as an image file
-    #     laser_chart_filename = f"lvdt_p3_chart_{i}.png"
-    #     laser_chart_filepath = os.path.join(chart_directory, laser_chart_filename)
-    #     plt.savefig(laser_chart_filepath, bbox_inches='tight')
-    #     plt.close()
-
-    ########## END LDVT Data ##########
-
-
     ########## START Strain Gauges Data ##########
 
     # --------------------------------------- #
@@ -674,29 +796,11 @@ def home():
     # --------------------------------------- #
     shayam_bazar_viaduct_csv_files = [
         dl[0]
-        # "Tallah_ROB_A1_P7_DL1-DataList23Jun23.csv"
     ]
 
-    # Define the columns for analysis
-    shayam_bazar_viaduct_RHS_columns = [
-        "A1_RBLG_SG_1_Strain",
-        "SA1P1_RBLG_SG_1_Strain",
-        "SP1P2_RBLG_SG_1_Strain",
-        "SP2P3_RBLG_SG_1_Strain",
-        "SP3P4_RBLG_SG_1_Strain",
-        "SP4P5_RBLG_SG_1_Strain",
-        "SP5CP1_RBLG_SG_1_Strain"
-    ]
-
-    shayam_bazar_viaduct_LHS_columns = [
-        "A1_LBLG_SG_2_Strain",
-        "SA1P1_LBLG_SG_2_Strain",
-        "SP1P2_LBLG_SG_2_Strain",
-        "SP2P3_LBLG_SG_2_Strain",
-        "SP3P4_LBLG_SG_2_Strain",
-        "SP4P5_LBLG_SG_2_Strain",
-        "SP5CP1_LBLG_SG_2_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     shayam_bazar_viaduct_RHS_statistics = {
@@ -767,41 +871,11 @@ def home():
     P6_P7_BS1_csv_files  = [
         dl[0],
         dl[1]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_A1_P7_DL1-DataList.csv",
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P6_P8_DL2-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    P6_P7_BS1_LHS_columns = [
-        "SP6P7_BS1R_HAJ_SG_1_Strain",
-        "SP6P7_BS1R_HAJ_SG_2_Strain",
-        "SP6P7_BS1R_HAJ_SG_3_Strain",
-        "SP6P7_BS1R_AAJ_SG_1_Strain",
-        "SP6P7_BS1R_AAJ_SG_2_Strain",
-        "SP6P7_BS1R_AAJ_SG_3_Strain",
-        "SP6P7_BS1R_HBLBJ_SG1_Strain",
-        "SP6P7_BS1R_HBLBJ_SG2_Strain",
-        "SP6P7_BS1R_HBLBJ_SG3_Strain",
-        "SP6P7_BS1R_BLBJ_SG_1_Strain",
-        "SP6P7_BS1R_BLBJ_SG_2_Strain",
-        "SP6P7_BS1R_BLBJ_SG_3_Strain",
-        "SP6P7_BS1L_HAJ_SG_1_Strain",
-        "SP6P7_BS1L_HAJ_SG_2_Strain",
-        "SP6P7_BS1L_HAJ_SG_3_Strain",
-        "SP6P7_BS1L_AAJ_SG_1_Strain",
-        "SP6P7_BS1L_AAJ_SG_2_Strain",
-        "SP6P7_BS1L_AAJ_SG_3_Strain",
-        "SP6P7_BS1L_HBLBJ_SG1_Strain",
-        "SP6P7_BS1L_HBLBJ_SG2_Strain",
-        "SP6P7_BS1L_HBLBJ_SG3_Strain",
-        "SP6P7_BS1L_BLBJ_SG_1_Strain",
-        "SP6P7_BS1L_BLBJ_SG_2_Strain",
-        "SP6P7_BS1L_BLBJ_SG3_Strain",
-        "P6_BS1L_NJ_SG_1_Strain",
-        "P6_BS1R_NJ_SG_2_Strain",
-        "P7_BS1L_NJ_SG_3_Strain",
-        "P7_BS1R_NJ_SG_4_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     P6_P7_BS1_LHS_statistics = {
         "Instrument Tag No.": [],
@@ -845,40 +919,11 @@ def home():
     P6_P7_BS3_csv_files = [
         dl[1],
         dl[2]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P6_P8_DL2-DataList.csv",
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P7_CP2_DL3-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    P6_P7_BS3_LHS_columns = [
-        "SP7P8_BS3R_HAJ_SG_1_Strain",
-        "SP7P8_BS3R_HAJ_SG_2_Strain",
-        "SP7P8_BS3R_HAJ_SG_3_Strain",
-        "SP7P8_BS3R_AAJ_SG_1_Strain",
-        "SP7P8_BS3R_AAJ_SG_2_Strain",
-        "SP7P8_BS3R_AAJ_SG_3_Strain",
-        "SP7P8_BS3R_HBLBJ_SG1_Strain",
-        "SP7P8_BS3R_HBLBJ_SG2_Strain",
-        "SP7P8_BS3R_HBLBJ_SG3_Strain",
-        "SP7P8_BS3R_BLBJ_SG_1_Strain",
-        "SP7P8_BS3R_BLBJ_SG_2_Strain",
-        "SP7P8_BS3R_BLBJ_SG_3_Strain",
-        "SP7P8_BS3L_HAJ_SG_1_Strain",
-        "SP7P8_BS3L_HAJ_SG_2_Strain",
-        "SP7P8_BS3L_HAJ_SG_3_Strain",
-        "SP7P8_BS3L_AAJ_SG_1_Strain",
-        "SP7P8_BS3L_AAJ_SG_2_Strain",
-        "SP7P8_BS3L_AAJ_SG_3_Strain",
-        "SP7P8_BS3L_HBLBJ_SG1_Strain",
-        "SP7P8_BS3L_HBLBJ_SG2_Strain",
-        "SP7P8_BS3L_HBLBJ_SG3_Strain",
-        "SP7P8_BS3L_BLBJ_SG_1_Strain",
-        "SP7P8_BS3L_BLBJ_SG_2_Strain",
-        "SP7P8_BS3L_BLBJ_SG_3_Strain",
-        "P7_BS3L_NJ_SG_1_Strain",
-        "P7_BS3R_NJ_SG_2_Strain",
-        "P8_BS3L_NJ_SG_3_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     P6_P7_BS3_LHS_statistics = {
@@ -924,41 +969,11 @@ def home():
     P6_P7_BS5_csv_files = [
         dl[2],
         dl[3]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P7_CP2_DL3-DataList.csv",
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P9_A2_DL4-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    P6_P7_BS5_LHS_columns = [
-        "SP9CP2_BS5R_HAJ_SG_1_Strain",
-        "SP9CP2_BS5R_HAJ_SG_2_Strain",
-        "SP9CP2_BS5R_HAJ_SG_3_Strain",
-        "SP9CP2_BS5R_AAJ_SG_1_Strain",
-        "SP9CP2_BS5R_AAJ_SG_2_Strain",
-        "SP9CP2_BS5R_AAJ_SG_3_Strain",
-        "SP9CP2_BS5R_HBLBJSG1_Strain",
-        "SP9CP2_BS5R_HBLBJSG2_Strain",
-        "SP9CP2_BS5R_HBLBJSG3_Strain",
-        "SP9CP2_BS5R_BLBJ_SG1_Strain",
-        "SP9CP2_BS5R_BLBJ_SG2_Strain",
-        "SP9CP2_BS5R_BLBJ_SG3_Strain",
-        "SP9CP2_BS5L_HAJ_SG1_Strain",
-        "SP9CP2_BS5L_HAJ_SG2_Strain",
-        "SP9CP2_BS5L_HAJ_SG3_Strain",
-        "SP9CP2_BS5L_AAJ_SG1_Strain",
-        "SP9CP2_BS5L_AAJ_SG2_Strain",
-        "SP9CP2_BS5L_AAJ_SG3_Strain",
-        "SP9CP2_BS5L_HBLBJSG1_Strain",
-        "SP9CP2_BS5L_HBLBJSG2_Strain",
-        "SP9CP2_BS5L_HBLBJSG3_Strain",
-        "SP9CP2_BS5L_BLBJSG1_Strain",
-        "SP9CP2_BS5L_BLBJSG2_Strain",
-        "SP9CP2_BS5L_BLBJSG3_Strain",
-        "P9_BS5L_NJ_SG_1_Strain",
-        "P9_BS5R_NJ_SG_2_Strain",
-        "CP2_BS5L_NJ_SG_3_Strain",
-        "CP2_BS5R_NJ_SG_4_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     P6_P7_BS5_LHS_statistics = {
@@ -1004,41 +1019,11 @@ def home():
     P6_P7_BS2_csv_files = [
         dl[0],
         dl[1]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_A1_P7_DL1-DataList.csv",
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P6_P8_DL2-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    P6_P7_BS2_RHS_columns = [
-        "SP6P7_BS2L_HAJ_SG_1_Strain",
-        "SP6P7_BS2L_HAJ_SG_2_Strain",
-        "SP6P7_BS2L_HAJ_SG_3_Strain",
-        "SP6P7_BS2L_AAJ_SG_1_Strain",
-        "SP6P7_BS2L_AAJ_SG_2_Strain",
-        "SP6P7_BS2L_AAJ_SG_3_Strain",
-        "SP6P7_BS2L_HBLBJ_SG1_Strain",
-        "SP6P7_BS2L_HBLBJ_SG2_Strain",
-        "SP6P7_BS2L_HBLBJ_SG3_Strain",
-        "SP6P7_BS2L_BLBJ_SG_1_Strain",
-        "SP6P7_BS2L_BLBJ_SG_2_Strain",
-        "SP6P7_BS2L_BLBJ_SG_3_Strain",
-        "SP6P7_BS2R_HAJ_SG_1_Strain",
-        "SP6P7_BS2R_HAJ_SG_2_Strain",
-        "SP6P7_BS2R_HAJ_SG_3_Strain",
-        "SP6P7_BS2R_AAJ_SG_1_Strain",
-        "SP6P7_BS2R_AAJ_SG_2_Strain",
-        "SP6P7_BS2R_AAJ_SG_3_Strain",
-        "SP6P7_BS2R_HBLBJ_SG1_Strain",
-        "SP6P7_BS2R_HBLBJ_SG2_Strain",
-        "SP6P7_BS2R_HBLBJ_SG3_Strain",
-        "SP6P7_BS2R_BLBJ_SG_1_Strain",
-        "SP6P7_BS2R_BLBJ_SG_2_Strain",
-        "SP6P7_BS2R_BLBJ_SG_3_Strain",
-        "P6_BS2L_NJ_SG_1_Strain",
-        "P6_BS2R_NJ_SG_2_Strain",
-        "P7_BS2L_NJ_SG_3_Strain",
-        "P7_BS2R_NJ_SG_4_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     P6_P7_BS2_RHS_statistics = {
@@ -1085,41 +1070,11 @@ def home():
     P6_P7_BS4_csv_files = [
         dl[1],
         dl[2]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P6_P8_DL2-DataList.csv",
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P7_CP2_DL3-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    P6_P7_BS4_RHS_columns = [
-        "SP7P8_BS4L_HAJ_SG_1_Strain",
-        "SP7P8_BS4L_HAJ_SG_2_Strain",
-        "SP7P8_BS4L_HAJ_SG_3_Strain",
-        "SP7P8_BS4L_AAJ_SG_1_Strain",
-        "SP7P8_BS4L_AAJ_SG_2_Strain",
-        "SP7P8_BS4L_AAJ_SG_3_Strain",
-        "SP7P8_BS4L_HBLBJ_SG1_Strain",
-        "SP7P8_BS4L_HBLBJ_SG2_Strain",
-        "SP7P8_BS4L_HBLBJ_SG3_Strain",
-        "SP7P8_BS4L_BLBJ_SG_1_Strain",
-        "SP7P8_BS4L_BLBJ_SG_2_Strain",
-        "SP7P8_BS4L_BLBJ_SG_3_Strain",
-        "SP7P8_BS4R_HAJ_SG_1_Strain",
-        "SP7P8_BS4R_HAJ_SG_2_Strain",
-        "SP7P8_BS4R_HAJ_SG_3_Strain",
-        "SP7P8_BS4R_AAJ_SG_1_Strain",
-        "SP7P8_BS4R_AAJ_SG_2_Strain",
-        "SP7P8_BS4R_AAJ_SG_3_Strain",
-        "SP7P8_BS4R_HBLBJ_SG1_Strain",
-        "SP7P8_BS4R_HBLBJ_SG2_Strain",
-        "SP7P8_BS4R_HBLBJ_SG3_Strain",
-        "SP7P8_BS4R_BLBJ_SG_1_Strain",
-        "SP7P8_BS4R_BLBJ_SG_2_Strain",
-        "SP7P8_BS4R_BLBJ_SG_3_Strain",
-        "P7_BS4L_NJ_SG_1_Strain",
-        "P7_BS4R_NJ_SG_2_Strain",
-        "P8_BS4L_NJ_SG_3_Strain",
-        "P8_BS4R_NJ_SG_4_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     P6_P7_BS4_RHS_statistics = {
@@ -1166,41 +1121,11 @@ def home():
     P6_P7_BS6_csv_files = [
         dl[2],
         dl[3]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P7_CP2_DL3-DataList.csv",
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P9_A2_DL4-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    P6_P7_BS6_RHS_columns = [
-        "SP9CP2_BS6L_HAJ_SG_1_Strain",
-        "SP9CP2_BS6L_HAJ_SG_2_Strain",
-        "SP9CP2_BS6L_HAJ_SG_3_Strain",
-        "SP9CP2_BS6L_AAJ_SG_1_Strain",
-        "SP9CP2_BS6L_AAJ_SG_2_Strain",
-        "SP9CP2_BS6L_AAJ_SG_3_Strain",
-        "SP9CP2_BS6L_HBLBJSG1_Strain",
-        "SP9CP2_BS6L_HBLBJSG2_Strain",
-        "SP9CP2_BS6L_HBLBJSG3_Strain",
-        "SP9CP2_BS6L_BLBJ_SG1_Strain",
-        "SP9CP2_BS6L_BLBJ_SG2_Strain",
-        "SP9CP2_BS6L_BLBJ_SG3_Strain",
-        "SP9CP2_BS6R_HAJ_SG_1_Strain",
-        "SP9CP2_BS6R_HAJ_SG_2_Strain",
-        "SP9CP2_BS6R_HAJ_SG_3_Strain",
-        "SP9CP2_BS6R_AAJ_SG1_Strain",
-        "SP9CP2_BS6R_AAJ_SG_2_Strain",
-        "SP9CP2_BS6R_AAJ_SG_3_Strain",
-        "SP9CP2_BS6R_HBLBJSG1_Strain",
-        "SP9CP2_BS6R_HBLBJSG2_Strain",
-        "SP9CP2_BS6R_HBLBJSG3_Strain",
-        "SP9CP2_BS6R_BLBJSG1_Strain",
-        "SP9CP2_BS6R_BLBJSG2_Strain",
-        "SP9CP2_BS6R_BLBJSG3_Strain",
-        "P9_BS6L_NJ_SG_1_Strain",
-        "P9_BS6R_NJ_SG_2_Strain",
-        "CP2_BS6L_NJ_SG_3_Strain",
-        "CP2_BS6R_NJ_SG_4_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     P6_P7_BS6_RHS_statistics = {
@@ -1244,29 +1169,11 @@ def home():
 
     dunlop_Viaduct_csv_files = [
         dl[3]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P9_A2_DL4-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    dunlop_Viaduct_RHS_columns = [
-        "SCP2P10_RBLG_SG_1_Strain",
-        "SP10P11_RBLG_SG_1_Strain",
-        "SP11P12_RBLG_SG_1_Strain",
-        "SP12P13_RBLG_SG_1_Strain",
-        "SP13P14_RBLG_SG_1_Strain",
-        "SP14A2_RBLG_SG_1_Strain",
-        "A2_RBLG_SG_1_Strain"
-    ]
-
-    dunlop_Viaduct_LHS_columns = [
-        "SCP2P10_LBLG_SG_2_Strain",
-        "SP10P11_LBLG_SG_2_Strain",
-        "SP11P12_LBLG_SG_2_Strain",
-        "SP12P13_LBLG_SG_2_Strain",
-        "SP13P14_LBLG_SG_2_Strain",
-        "SP14A2_LBLG_SG_2_Strain",
-        "A2_LBLG_SG_2_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     dunlop_Viaduct_RHS_statistics = {
@@ -1337,16 +1244,11 @@ def home():
     P7_P8_BS4_additional_csv_files = [
         dl[1],
         dl[2]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P6_P8_DL2-DataList.csv",
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P7_CP2_DL3-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    P7_P8_BS4_additional_RHS_columns = [
-        "SP7P8_BS4L_HBLBJ_SG4_Strain",
-        "Additional_SG13_Strain",
-        "Additional_SG14_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     P7_P8_BS4_additional_RHS_statistics = {
@@ -1392,29 +1294,11 @@ def home():
 
     chitpur_viaduct_csv_files = [
         dl[4]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P16_A3_DL5-DataList.csv",
     ]
 
-    # Define the columns for analysis
-    chitpur_viaduct_RHS_columns = [
-        "SP16P17_RBLG_SG_1_Strain",
-        "SP17P18_RBLG_SG_1_Strain",
-        "SP18P19_RBLG_SG_1_Strain",
-        "SP19P20_RBLG_SG_1_Strain",
-        "SP20P21_RBLG_SG_1_Strain",
-        "SP21A3_RBLG_SG_1_Strain",
-        "A3_RBLG_SG_1_Strain"
-    ]
-
-    chitpur_viaduct_LHS_columns = [
-        "SP16P17_LBLG_SG_2_Strain",
-        "SP17P18_LBLG_SG_2_Strain",
-        "SP18P19_LBLG_SG_2_Strain",
-        "SP19P20_LBLG_SG_2_Strain",
-        "SP20P21_LBLG_SG_2_Strain",
-        "SP21A3_LBLG_SG_2_Strain",
-        "A3_LBLG_SG_2_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     chitpur_viaduct_RHS_statistics = {
@@ -1525,6 +1409,125 @@ def home():
         corrosion_data=corrosion_data
     )
 
+
+#   STRAIN GUGES CHARTS VIEW
+@main.route('/strain/')
+def strain():
+    shayam_bazar_viaduct_csv_files = [
+        dl[0]
+    ] 
+    
+    P6_P7_BS1_csv_files  = [
+        dl[0],
+        dl[1]
+    ]
+
+    P6_P7_BS3_csv_files = [
+        dl[1],
+        dl[2]
+    ]
+
+    P6_P7_BS5_csv_files = [
+        dl[2],
+        dl[3]
+    ]
+
+    P6_P7_BS2_csv_files = [
+        dl[0],
+        dl[1]
+    ]
+
+    P6_P7_BS4_csv_files = [
+        dl[1],
+        dl[2]
+    ]
+
+    P6_P7_BS6_csv_files = [
+        dl[2],
+        dl[3]
+    ]
+
+    dunlop_Viaduct_csv_files = [
+        dl[3]
+    ]
+
+    P7_P8_BS4_additional_csv_files = [
+        dl[1],
+        dl[2]
+    ]
+
+    chitpur_viaduct_csv_files = [
+        dl[4]
+    ]
+
+    # Create a list to store all the CSV files and their corresponding columns
+    csv_data_list = [
+        (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_RHS_columns),
+        (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_LHS_columns),
+        (P6_P7_BS1_csv_files, P6_P7_BS1_LHS_columns),
+        (P6_P7_BS3_csv_files, P6_P7_BS3_LHS_columns),
+        (P6_P7_BS5_csv_files, P6_P7_BS5_LHS_columns),
+        (P6_P7_BS2_csv_files, P6_P7_BS2_RHS_columns),
+        (P6_P7_BS4_csv_files, P6_P7_BS4_RHS_columns),
+        (P6_P7_BS6_csv_files, P6_P7_BS6_RHS_columns),
+        (dunlop_Viaduct_csv_files, dunlop_Viaduct_RHS_columns),
+        (dunlop_Viaduct_csv_files, dunlop_Viaduct_LHS_columns),
+        (P7_P8_BS4_additional_csv_files, P7_P8_BS4_additional_RHS_columns),
+        (chitpur_viaduct_csv_files, chitpur_viaduct_RHS_columns),
+        (chitpur_viaduct_csv_files, chitpur_viaduct_LHS_columns)
+    ]
+
+    strain_charts_data = []
+
+    # Iterate over each group of CSV files and their columns
+    for csv_files, columns in csv_data_list:
+        # Create an empty dictionary to store data for this group
+        group_data = {
+            "csv_files": csv_files, 
+            "columns": columns,
+            "data": []
+        }
+
+        ###############################################
+        #### THIS CODE RETURNING AN ERROR 
+        #### KeyError: "['SP6P7_BS1L_HAJ_SG_1_Strain', 'SP6P7_BS1L_HAJ_SG_2_Strain', 'SP6P7_BS1L_HAJ_SG_3_Strain', 'SP6P7_BS1L_AAJ_SG_1_Strain', 'SP6P7_BS1L_AAJ_SG_2_Strain', 'SP6P7_BS1L_AAJ_SG_3_Strain', 'SP6P7_BS1L_HBLBJ_SG1_Strain', 'SP6P7_BS1L_HBLBJ_SG2_Strain', 'SP6P7_BS1L_HBLBJ_SG3_Strain', 'SP6P7_BS1L_BLBJ_SG_1_Strain', 'SP6P7_BS1L_BLBJ_SG_2_Strain', 'SP6P7_BS1L_BLBJ_SG3_Strain', 'P7_BS1L_NJ_SG_3_Strain', 'P7_BS1R_NJ_SG_4_Strain'] not in index"
+        ###############################################
+        
+        # # Iterate over each CSV file in the group
+        # for csv_file in csv_files:
+        #     # Read the CSV file into a DataFrame
+        #     df = pd.read_csv(csv_file, skiprows=3)
+
+        #     # Extract data for the defined columns and store it in the dictionary
+        #     group_data["data"].extend(df[columns].values.tolist())
+        ############################################
+        ############################################
+
+        # Iterate over each CSV file in the group
+        for csv_file in csv_files:
+            # Read the CSV file into a DataFrame
+            df = pd.read_csv(csv_file, skiprows=3)
+
+            # Find the common columns between DataFrame and specified columns
+            common_columns = list(set(columns).intersection(df.columns))
+
+            # Extract data for the common columns and store it in the dictionary
+            for column in common_columns:
+                column_data = {
+                    "column_name": column,
+                    "csv_name": csv_file,
+                    "values": df[column].tolist()
+                }
+                group_data["data"].append(column_data)
+
+        # Append the data for this group to the list for all CSV files
+        strain_charts_data.append(group_data)
+
+    return render_template(
+        'strain.html', 
+        strain_charts_data=strain_charts_data
+    ) 
+
 #   ACCELEROMETERS VIEW 
 @main.route("/accelerometers/")
 def accelerometers():
@@ -1536,6 +1539,7 @@ def accelerometers():
     for csv_file in accelerometers_csv:
         # Read the CSV file into a DataFrame
         df = pd.read_csv(csv_file, skiprows=3)
+        df.columns = df.columns.str.strip()
 
         # Create a dictionary to store data for this CSV file
         csv_data = {
@@ -1634,6 +1638,12 @@ def ldvt():
                         "label": column,
                         "data": list(df[column])
                     }
+
+                    # Generate a random ID for the chart
+                    chart_data["canvas_id"] = generate_random_id()
+
+                    # Append the chart data to the list for this CSV file
+                    csv_charts_data.append(chart_data)
 
                     # Add the dataset to the chart data
                     chart_data["datasets"].append(dataset)
