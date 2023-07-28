@@ -516,7 +516,19 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
 
 
         <!-- ======= START Graphical representation of Accelerometers ======= -->
+        <div class="table-responsive">
+            <h5 class="my-3 text-primary">
+                G. Graphical representation of Accelerometers.
+            </h5>
 
+            <script>
+            // Loop through each chart data in the 'laser_charts_data' array
+            const accelerometersChartsData = {{ accelerometers_charts_data | safe }};
+            console.log('-------- accelero meter chart data ---------')
+            console.log(accelerometersChartsData)
+            console.log('----------------')
+            </script>
+        </div>
 
 
 
@@ -1039,7 +1051,7 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
         <!-- Add this container to hold multiple charts -->
         <div id="chart-container"></div>
 
-        <script>
+        <!-- <script>
             // Loop through each chart data in the 'laser_charts_data' array
             const laserChartsData = {{ laser_charts_data | safe }};
         </script>
@@ -1111,7 +1123,7 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Chart 1: Deflection_1 Threshold_LS1',
+                                text: chartTitle,
                                 color: 'navy',
                                 position: 'bottom',
                                 align: 'center',
@@ -1126,7 +1138,7 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                 });
 
             });
-        </script>
+        </script> -->
         <!-- ======= END Graphical representation of Accelerometers ======= -->
 
 
