@@ -1,0 +1,81 @@
+{% extends "root.html" %}
+
+{% block title %}
+BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
+{% endblock %}
+
+{% block styles %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Add this container to hold multiple charts -->
+<div id="chart-container"></div>
+<script>
+    // Loop through each chart data in the 'laser_charts_data' array
+    const tempChartsData = {{ temperature_charts_data | safe }};
+
+    console.log(tempChartsData)
+
+
+
+    // Access the container where the charts will be displayed
+    const chartContainer = document.getElementById('chart-container');
+
+    tempChartsData.forEach((chartData, index) => {
+        const chartTitle = chartData.column_name;
+        const chart_label_id = "ls" + (index + 1);
+        // const laser_chart_labels = chartData[chart_label_id][0]['labels'];
+
+        console.log('---------')
+        console.log( chartTitle )
+        console.log( chart_label_id )
+        console.log('---------')
+
+        // Create a canvas element for the current chart
+        const canvasElement = document.createElement('canvas');
+        canvasElement.id = `temp_chart_${index}`;
+        canvasElement.style.width = '100%';
+        canvasElement.style.height = '60vh';
+
+        // Append the canvas element to the chart container
+        chartContainer.appendChild(canvasElement);
+
+        // Get the context for the current chart
+        const ctx = canvasElement.getContext('2d');
+
+        const myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: [
+                    {
+                        data: chartData.values,
+                        label: chartTitle,
+                        borderColor: "blue",
+                        fill: false
+                    }
+                ]
+            },
+
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `Chart of ${chartTitle}`,
+                        color: 'navy',
+                        position: 'bottom',
+                        align: 'center',
+                        font: {
+                            weight: 'bold'
+                        },
+                        padding: 8,
+                        fullSize: true,
+                    }
+                }
+            }
+        });
+
+    });
+</script>
+{% endblock %}

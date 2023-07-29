@@ -1696,3 +1696,39 @@ def laser():
         # Append data dictionary to the array
         laser_charts_data.append(chart_data)
     return render_template('laser.html', laser_charts_data=laser_charts_data)
+
+
+
+@main.route("/temperature/")
+def temperature():
+    temperature_meter_csv_files = [dl[1], dl[3]]
+
+    # Define the columns for analysis
+    temperature_columns = [
+        "SPP6P7_BS1L_ARCH_T1",
+        "SP9CP2_BS6R_ARCH_T2_Temp"
+    ]
+
+    temperature_charts_data = []
+
+    # Iterate over each CSV file
+    for csv_file in temperature_meter_csv_files:
+        # Read the CSV file into a DataFrame
+        df = pd.read_csv(csv_file, skiprows=3)
+        df.columns = df.columns.str.strip()
+
+        # Find the common columns between DataFrame and specified columns
+        common_columns = list(set(temperature_columns).intersection(df.columns))
+        
+        # Extract data for the common columns and store it in the dictionary
+        for column in common_columns:
+            column_data = {
+                "column_name": column,
+                "csv_name": csv_file,
+                "labels": list(df['DateTime']),
+                "values": df[column].tolist()
+            }
+            
+            temperature_charts_data.append(column_data)
+
+    return render_template('temperature.html', temperature_charts_data=temperature_charts_data)
