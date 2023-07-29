@@ -1,23 +1,23 @@
 {% extends "root.html" %}
 {% block title %}
-BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
+    BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
 {% endblock %}
-{% block styles %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
+{% block styles %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
 {% block content %}
-<!-- <script>
+    <!-- NEED TO FIX THIS CHART ID -->
+    <script>
     const ldvt_chart_data = {{ ldvt_charts_data | safe }}
-    console.log( ldvt_chart_data[0][0] )
+    console.log( ldvt_chart_data )
     console.log('-----')
-    </script> -->
-{% for csv_charts_data in ldvt_charts_data %}
-<h2>Charts for {{ csv_charts_data[0]['dl_name'] }}</h2>
-{% for chart_data in csv_charts_data %}
-<div>
-    <h3>{{ chart_data['chart_title'] }}</h3>
-    <canvas id="{{ chart_data['canvas_id'] }}"></canvas>
-</div>
-<script>
+    </script>
+    {% for csv_charts_data in ldvt_charts_data %}
+        <h2>Charts for {{ csv_charts_data[0]['dl_name'] }}</h2>
+        {% for chart_data in csv_charts_data %}
+            <div>
+                <h3>{{ chart_data['chart_title'] }}</h3>
+                <canvas id="{{ chart_data['canvas_id'] }}"></canvas>
+            </div>
+            <!-- <script>
     // Get chart data from the backend
     const labels = {{ chart_data['labels']| tojson }};
     const datasets = {{ chart_data['datasets']| tojson }};
@@ -47,7 +47,7 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
             }
         }
     });
-</script>
-{% endfor %}
-{% endfor %}
+            </script> -->
+        {% endfor %}
+    {% endfor %}
 {% endblock %}

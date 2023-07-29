@@ -1507,10 +1507,12 @@ def strain():
         for csv_file in csv_files:
             # Read the CSV file into a DataFrame
             df = pd.read_csv(csv_file, skiprows=3)
+            df.columns = df.columns.str.strip()
 
             # Find the common columns between DataFrame and specified columns
             common_columns = list(set(columns).intersection(df.columns))
-
+            group_data["labels"] = list(df['DateTime'])
+            
             # Extract data for the common columns and store it in the dictionary
             for column in common_columns:
                 column_data = {
@@ -1518,6 +1520,7 @@ def strain():
                     "csv_name": csv_file,
                     "values": df[column].tolist()
                 }
+                
                 group_data["data"].append(column_data)
 
         # Append the data for this group to the list for all CSV files

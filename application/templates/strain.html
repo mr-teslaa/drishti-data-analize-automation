@@ -1,16 +1,74 @@
 {% extends "root.html" %}
-
 {% block title %}
     BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
 {% endblock %}
-
-{% block styles %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-{% endblock %}
-
+{% block styles %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
 {% block content %}
+    <!-- <script>console.log({{ strain_charts_data | safe }})</script> -->
+    <!-- Other HTML content -->
+    {% for group_data in strain_charts_data %}
+        <h2>Group: {{ loop.index }}</h2>
+        {% for chart_data in group_data.data %}
+            <div>
+                <h3>Chart for CSV File: {{ chart_data.csv_name }}</h3>
+                <canvas id="chart-{{ loop.index }}"></canvas>
+            </div>
+        {% endfor %}
+        <script>
+    // Get data from the Jinja context
+    let strainData = JSON.parse('{{ group_data.data | tojson | safe }}');
+    let labels = strainData['DateTime'];
 
-<script>
-    console.log({{ strain_charts_data | safe }})
-</script>
+    // Remove 'DateTime' key from the data
+    delete strainData['DateTime'];
+
+    // Get column names for the accelerometer data
+    // let strainColumns = Object.keys(data);
+    console.log(strainData)
+
+    // Create a separate Line chart for each accelerometer column
+    strainData.forEach(function (groupData, groupIndex) {
+        console.log(groupData)
+        // Create Chart.js Line chart
+        const ctx = document.createElement('canvas');
+        ctx.setAttribute('id', 'chart-{{ loop.index }}-' + strainColumn);
+        ctx.setAttribute('width', '400');
+        ctx.setAttribute('height', '200');
+        document.body.appendChild(ctx);
+        ctx.getContext('2d');
+
+        const myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        data: data[strainColumn],
+                        label: strainColumn,
+                        borderColor: "blue",
+                        fill: false
+                    }
+                ]
+            },
+
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: "a chart title",
+                        color: 'navy',
+                        position: 'bottom',
+                        align: 'center',
+                        font: {
+                            weight: 'bold'
+                        },
+                        padding: 8,
+                        fullSize: true,
+                    }
+                }
+            }
+        });
+    });
+        </script>
+    {% endfor %}
 {% endblock %}
