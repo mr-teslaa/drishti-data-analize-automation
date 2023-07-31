@@ -1,56 +1,56 @@
 {% extends "root.html" %}
 {% block title %}
-    BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
+BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
 {% endblock %}
-{% block styles %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
+{% block styles %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
 {% block content %}
 <div class="container">
+    <script>
+        console.log({{ strain_charts_data | safe}})
+    </script>
     <!-- Other HTML content -->
     {% for group_data in strain_charts_data %}
-        <script>
-    // Get data from the Jinja context
-    let strainData{{ loop.index }} = JSON.parse('{{ group_data.data | tojson | safe }}');
-    let labels{{ loop.index }} = {{ group_data['labels'] | safe }}
-    console.log('------- hi ------')
-    console.log({{ group_data['labels'] | safe }})
+    <script>
+        // Get data from the Jinja context
+        let strainData{{ loop.index }} = JSON.parse('{{ group_data.data | tojson | safe }}');
+        let labels{{ loop.index }} = {{ group_data['labels'] | safe }}
 
-    // Remove 'DateTime' key from the data
-    // delete strainData{{loop.index}}['DateTime'];
+        // Create an array to store datasets for this group
+        let datasets{{ loop.index }} =[];
 
-    // Get column names for the accelerometer data
-    // let strainColumns = Object.keys(data);
+        // Define an array of colors
+        const lineColors{{ loop.index }} = ['blue', 'red', 'green', 'purple', 'orange', 'yellow', 'cyan']; // Add more colors as needed
 
-    // Create a separate Line chart for each accelerometer column
-    strainData{{ loop.index }}.forEach(function (groupData, groupIndex) {
-        // console.log(groupData)
-        // console.log(groupData.column_name)
+        // Iterate over each dataset in the group and create a separate dataset for each line
+        strainData{{ loop.index }}.forEach(function (dataset, datasetIndex) {
+            datasets{{ loop.index }}.push({
+                data: dataset.values,
+                label: dataset.column_name,
+                borderColor: lineColors{{loop.index}}[datasetIndex % lineColors{{loop.index}}.length], // Use different colors for each line
+                fill: false
+            });
+        });
+
         // Create Chart.js Line chart
-        const ctx = document.createElement('canvas');
-        ctx.setAttribute('id', 'chart-{{ loop.index }}');
-        ctx.setAttribute('width', '400');
-        ctx.setAttribute('height', '200');
-        document.body.appendChild(ctx);
-        ctx.getContext('2d');
+        const ctx{{loop.index}} = document.createElement('canvas');
+        ctx{{loop.index}}.setAttribute('id', 'chart-{{ loop.index }}');
+        ctx{{loop.index}}.setAttribute('width', '400');
+        ctx{{loop.index}}.setAttribute('height', '200');
+        document.body.appendChild(ctx{{loop.index}});
+        ctx{{loop.index}}.getContext('2d');
 
-        const myChart = new Chart(ctx, {
+        const myChart{{ loop.index }} = new Chart(ctx{{loop.index}}, {
             type: 'line',
             data: {
                 labels: labels{{ loop.index }},
-                datasets: [
-                    {
-                        data: groupData.values,
-                        label: groupData.column_name,
-                        borderColor: "blue",
-                        fill: false
-                    }
-                ]
+                datasets: datasets{{ loop.index }}
             },
-
             options: {
                 plugins: {
                     title: {
                         display: true,
-                        text: "Chart - " + groupData.column_name,
+                        text: "a chart title",
                         color: 'navy',
                         position: 'bottom',
                         align: 'center',
@@ -63,8 +63,52 @@
                 }
             }
         });
-    });
-        </script>
+
+    // Create a separate Line chart for each accelerometer column
+    // strainData{{ loop.index }}.forEach(function (groupData, groupIndex) {
+    //     // console.log(groupData)
+    //     // console.log(groupData.column_name)
+    //     // Create Chart.js Line chart
+    //     const ctx = document.createElement('canvas');
+    //     ctx.setAttribute('id', 'chart-{{ loop.index }}');
+    //     ctx.setAttribute('width', '400');
+    //     ctx.setAttribute('height', '200');
+    //     document.body.appendChild(ctx);
+    //     ctx.getContext('2d');
+
+    //     const myChart = new Chart(ctx, {
+    //         type: 'line',
+    //         data: {
+    //             labels: labels{{ loop.index }},
+    //             datasets: [
+    //                 {
+    //                     data: groupData.values,
+    //                     label: groupData.column_name,
+    //                     borderColor: "blue",
+    //                     fill: false
+    //                 }
+    //             ]
+    //         },
+
+    //         options: {
+    //             plugins: {
+    //                 title: {
+    //                     display: true,
+    //                     text: "Chart - " + groupData.column_name,
+    //                     color: 'navy',
+    //                     position: 'bottom',
+    //                     align: 'center',
+    //                     font: {
+    //                         weight: 'bold'
+    //                     },
+    //                     padding: 8,
+    //                     fullSize: true,
+    //                 }
+    //             }
+    //         }
+    //     });
+    // });
+    </script>
     {% endfor %}
 </div>
 {% endblock %}

@@ -1557,7 +1557,7 @@ def accelerometers():
 
 
 #   ACCELEROMETERS CHART VIEW 
-@main.route("/ldvt/")
+@main.route("/lvdt/")
 def ldvt():
     # --------------------------------------- #
     # -- SHOWING LINE CHART OF LDVT Data --- #
@@ -1648,6 +1648,9 @@ def ldvt():
 
                     # Generate a random ID for the chart
                     chart_data["canvas_id"] = generate_random_id()
+
+                    # Append the chart data to the list for this CSV file
+                    csv_charts_data.append(chart_data)
 
                 # Add the dataset to the chart data
                 chart_data["datasets"].append(dataset)
