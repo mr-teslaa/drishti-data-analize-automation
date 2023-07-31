@@ -1526,10 +1526,6 @@ def strain():
         # Append the data for this group to the list for all CSV files
         strain_charts_data.append(group_data)
 
-    print('---------------- strain date ----------------')
-    print(strain_charts_data)
-    print('---------------------------------------------')
-
     return render_template(
         'strain.html', 
         strain_charts_data=strain_charts_data
