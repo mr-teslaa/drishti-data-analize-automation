@@ -4,34 +4,29 @@
 {% endblock %}
 {% block styles %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
 {% block content %}
-    <!-- <script>console.log({{ strain_charts_data | safe }})</script> -->
+<div class="container">
     <!-- Other HTML content -->
     {% for group_data in strain_charts_data %}
-        <h2>Group: {{ loop.index }}</h2>
-        {% for chart_data in group_data.data %}
-            <div>
-                <h3>Chart for CSV File: {{ chart_data.csv_name }}</h3>
-                <canvas id="chart-{{ loop.index }}"></canvas>
-            </div>
-        {% endfor %}
         <script>
     // Get data from the Jinja context
-    let strainData = JSON.parse('{{ group_data.data | tojson | safe }}');
-    let labels = strainData['DateTime'];
+    let strainData{{ loop.index }} = JSON.parse('{{ group_data.data | tojson | safe }}');
+    let labels{{ loop.index }} = {{ group_data['labels'] | safe }}
+    console.log('------- hi ------')
+    console.log({{ group_data['labels'] | safe }})
 
     // Remove 'DateTime' key from the data
-    delete strainData['DateTime'];
+    // delete strainData{{loop.index}}['DateTime'];
 
     // Get column names for the accelerometer data
     // let strainColumns = Object.keys(data);
-    console.log(strainData)
 
     // Create a separate Line chart for each accelerometer column
-    strainData.forEach(function (groupData, groupIndex) {
-        console.log(groupData)
+    strainData{{ loop.index }}.forEach(function (groupData, groupIndex) {
+        // console.log(groupData)
+        // console.log(groupData.column_name)
         // Create Chart.js Line chart
         const ctx = document.createElement('canvas');
-        ctx.setAttribute('id', 'chart-{{ loop.index }}-' + strainColumn);
+        ctx.setAttribute('id', 'chart-{{ loop.index }}');
         ctx.setAttribute('width', '400');
         ctx.setAttribute('height', '200');
         document.body.appendChild(ctx);
@@ -40,11 +35,11 @@
         const myChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: labels,
+                labels: labels{{ loop.index }},
                 datasets: [
                     {
-                        data: data[strainColumn],
-                        label: strainColumn,
+                        data: groupData.values,
+                        label: groupData.column_name,
                         borderColor: "blue",
                         fill: false
                     }
@@ -55,7 +50,7 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: "a chart title",
+                        text: "Chart - " + groupData.column_name,
                         color: 'navy',
                         position: 'bottom',
                         align: 'center',
@@ -71,4 +66,5 @@
     });
         </script>
     {% endfor %}
+</div>
 {% endblock %}
