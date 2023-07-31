@@ -2,52 +2,73 @@
 {% block title %}
     BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
 {% endblock %}
-{% block styles %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
+{% block styles %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
 {% block content %}
     <!-- NEED TO FIX THIS CHART ID -->
+    <div id="chart-container"></div>
     <script>
-    const ldvt_chart_data = {{ ldvt_charts_data | safe }}
-    console.log( ldvt_chart_data )
-    console.log('-----')
-    </script>
-    {% for csv_charts_data in ldvt_charts_data %}
-        <h2>Charts for {{ csv_charts_data[0]['dl_name'] }}</h2>
-        {% for chart_data in csv_charts_data %}
-            <div>
-                <h3>{{ chart_data['chart_title'] }}</h3>
-                <canvas id="{{ chart_data['canvas_id'] }}"></canvas>
-            </div>
-            <!-- <script>
-    // Get chart data from the backend
-    const labels = {{ chart_data['labels']| tojson }};
-    const datasets = {{ chart_data['datasets']| tojson }};
+        const ldvt_chart_data = {{ ldvt_charts_data | safe }};
+        console.log(ldvt_chart_data);
+        console.log('-----');
 
-    // Create a new Chart instance for each chart
-    const ctx = document.getElementById('{{ chart_data['canvas_id'] }}').getContext('2d');
-    new Chart(ctx, {
-        type: 'line', // Change this to the desired chart type (e.g., 'bar', 'pie', etc.)
-        data: {
-            labels: labels,
-            datasets: datasets
-        },
-        options: {
-            plugins: {
-                title: {
-                    display: true,
-                    text: "a chart title",
-                    color: 'navy',
-                    position: 'bottom',
-                    align: 'center',
-                    font: {
-                        weight: 'bold'
-                    },
-                    padding: 8,
-                    fullSize: true,
+        ldvt_chart_data.forEach((csv_charts_data) => {
+            console.log(csv_charts_data);
+            const chartContainer = document.getElementById('chart-container');
+            const dlName = csv_charts_data[0]['dl_name'];
+
+            const h2Element = document.createElement('h2');
+            h2Element.textContent = `Charts for ${dlName}`;
+            chartContainer.appendChild(h2Element);
+
+            csv_charts_data.forEach((chart_data, index) => {
+                const dlName = chart_data['dl_name'];
+                const canvasId = `chartCanvas${index}`+ chart_data['chart_title'];
+                const h3Element = document.createElement('h3');
+                h3Element.textContent = dlName;
+
+                const canvasElement = document.createElement('canvas');
+                canvasElement.id = canvasId;
+                canvasElement.style.width = '100%';
+                canvasElement.style.height = '60vh';
+
+                chartContainer.appendChild(h3Element);
+                chartContainer.appendChild(canvasElement);
+
+
+                const labels = chart_data['labels'];
+                const datasets = chart_data['datasets'];
+
+                createChart(canvasId, labels, datasets);
+            });
+        });
+
+        function createChart(canvasId, labels, datasets) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            new Chart(ctx, {
+                type: 'line', // Change this to the desired chart type (e.g., 'bar', 'pie', etc.)
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: "a chart title",
+                            color: 'navy',
+                            position: 'bottom',
+                            align: 'center',
+                            font: {
+                                weight: 'bold'
+                            },
+                            padding: 8,
+                            fullSize: true,
+                        }
+                    }
                 }
-            }
+            });
         }
-    });
-            </script> -->
-        {% endfor %}
-    {% endfor %}
+    </script>
 {% endblock %}

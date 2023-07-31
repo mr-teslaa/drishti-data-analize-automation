@@ -1627,6 +1627,7 @@ def ldvt():
         for i, columns in enumerate(chart_columns):
             # Check if all required columns exist in the DataFrame
             if all(column in df.columns for column in columns):
+                print("inside")
                 # Create a dictionary to store chart data
                 chart_data = {
                     "dl_name": dl_csv_file,
@@ -1645,9 +1646,13 @@ def ldvt():
                         "data": list(df[column])
                     }
 
-                    # Add the dataset to the chart data
-                    chart_data["datasets"].append(dataset)
+                    # Generate a random ID for the chart
+                    chart_data["canvas_id"] = generate_random_id()
 
+                # Add the dataset to the chart data
+                chart_data["datasets"].append(dataset)
+
+                print(len(chart_data), chart_data)
                 # Append the chart data to the list for this CSV file
                 csv_charts_data.append(chart_data)
             else:
@@ -1655,6 +1660,7 @@ def ldvt():
 
         # Append the chart data for this CSV file to the list for all CSV files
         ldvt_charts_data.append(csv_charts_data)
+
     return render_template('ldvt.html', ldvt_charts_data=ldvt_charts_data)
 
 
