@@ -1612,6 +1612,58 @@ def ldvt():
         ['P17_D4_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'P17_D3_D2_Action_Positive', 'P17_D3_D2_Action_Negative', 'P17_D3_D2_Alarm_Positive', 'P17_D3_D2_Alarm_Negative']
     ]
 
+    # # Initialize a list to store chart data for all charts
+    # ldvt_charts_data = []
+
+    # # Iterate over each CSV file
+    # for dl_csv_file in dl:
+    #     # Read the CSV file into a DataFrame
+    #     df = pd.read_csv(dl_csv_file, skiprows=3)
+    #     df.columns = df.columns.str.strip()
+
+    #     # Initialize a list to store chart data for this CSV file
+    #     csv_charts_data = []
+
+    #     for i, columns in enumerate(chart_columns):
+    #         # Check if all required columns exist in the DataFrame
+    #         if all(column in df.columns for column in columns):
+    #             print("inside")
+    #             # Create a dictionary to store chart data
+    #             chart_data = {
+    #                 "dl_name": dl_csv_file,
+    #                 "chart_title": f"Chart {i + 1}",
+    #                 "labels": list(df['DateTime']),
+    #                 "datasets": []
+    #             }
+
+    #             # Generate a random ID for the chart
+    #             chart_data["canvas_id"] = generate_random_id()
+
+    #             for column in columns:
+    #                 # Create a dataset dictionary for this column
+    #                 dataset = {
+    #                     "label": column,
+    #                     "data": list(df[column])
+    #                 }
+
+    #                 # Generate a random ID for the chart
+    #                 chart_data["canvas_id"] = generate_random_id()
+
+    #                 # Append the chart data to the list for this CSV file
+    #                 csv_charts_data.append(chart_data)
+
+    #             # Add the dataset to the chart data
+    #             chart_data["datasets"].append(dataset)
+
+    #             print(len(chart_data), chart_data)
+    #             # Append the chart data to the list for this CSV file
+    #             csv_charts_data.append(chart_data)
+    #         else:
+    #             print(f"Required columns not found in {dl_csv_file}. Skipping chart {i + 1}.")
+
+    #     # Append the chart data for this CSV file to the list for all CSV files
+    #     ldvt_charts_data.append(csv_charts_data)
+
     # Initialize a list to store chart data for all charts
     ldvt_charts_data = []
 
@@ -1627,7 +1679,6 @@ def ldvt():
         for i, columns in enumerate(chart_columns):
             # Check if all required columns exist in the DataFrame
             if all(column in df.columns for column in columns):
-                print("inside")
                 # Create a dictionary to store chart data
                 chart_data = {
                     "dl_name": dl_csv_file,
@@ -1636,9 +1687,6 @@ def ldvt():
                     "datasets": []
                 }
 
-                # Generate a random ID for the chart
-                chart_data["canvas_id"] = generate_random_id()
-
                 for column in columns:
                     # Create a dataset dictionary for this column
                     dataset = {
@@ -1646,16 +1694,12 @@ def ldvt():
                         "data": list(df[column])
                     }
 
-                    # Generate a random ID for the chart
-                    chart_data["canvas_id"] = generate_random_id()
+                    # Append the dataset to the datasets list inside the main chart_data dictionary
+                    chart_data["datasets"].append(dataset)
 
-                    # Append the chart data to the list for this CSV file
-                    csv_charts_data.append(chart_data)
+                # Generate a random ID for the chart
+                chart_data["canvas_id"] = generate_random_id()
 
-                # Add the dataset to the chart data
-                chart_data["datasets"].append(dataset)
-
-                print(len(chart_data), chart_data)
                 # Append the chart data to the list for this CSV file
                 csv_charts_data.append(chart_data)
             else:
