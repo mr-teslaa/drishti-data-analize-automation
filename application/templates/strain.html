@@ -7,13 +7,15 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
 {% block content %}
 <div class="container">
     <script>
-        console.log({{ strain_charts_data | safe}})
+        console.log({{ strain_chart_datas | safe}})
     </script>
     <!-- Other HTML content -->
-    {% for group_data in strain_charts_data %}
+    {% for group_data in strain_chart_datas %}
     <script>
+        console.log('---')
+        console.log(group_data)
         // Get data from the Jinja context
-        let strainData{{ loop.index }} = JSON.parse('{{ group_data.data | tojson | safe }}');
+        let strainData{{ loop.index }} = {{ group_data.data | safe }}
         let labels{{ loop.index }} = {{ group_data['labels'] | safe }}
 
         // Create an array to store datasets for this group

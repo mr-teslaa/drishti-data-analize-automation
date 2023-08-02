@@ -341,6 +341,464 @@ chitpur_viaduct_LHS_columns = [
     "SP21A3_LBLG_SG_2_Strain",
     "A3_LBLG_SG_2_Strain"
 ]
+
+## START - STRAIN CHART
+strain_chart_columns = [
+    # dl 1 start here
+    [
+        "SP6P7_BS1R_HAJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_AAJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_HAJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_AAJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_HAJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_AAJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_HBLBJ_SG1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_BLBJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_HBLBJ_SG2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_BLBJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_HBLBJ_SG3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_BLBJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2L_HAJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2L_AAJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2L_HAJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2L_AAJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2L_HAJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2L_AAJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2L_HBLBJ_SG1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "P6_BS1_FF_D_Displacement",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "P3_D1_Displacement",
+        "P3_D1_D8_Alert_Positive",
+        "P3_D1_D8_Alert_Negative",
+        "P3_D1_D8_Action_Positive",
+        "P3_D1_D8_Action_Negative",
+        "P3_D1_D8_Alarm_Positive",
+        "P3_D1_D8_Alarm_Negative",
+    ],
+    [
+        "P3_D2_Displacement",
+        "P3_D1_D8_Alert_Positive",
+        "P3_D1_D8_Alert_Negative",
+        "P3_D1_D8_Action_Positive",
+        "P3_D1_D8_Action_Negative",
+        "P3_D1_D8_Alarm_Positive",
+        "P3_D1_D8_Alarm_Negative",
+    ],
+    [
+        "P3_D3_Displacement",
+        "P3_D1_D8_Alert_Positive",
+        "P3_D1_D8_Alert_Negative",
+        "P3_D1_D8_Action_Positive",
+        "P3_D1_D8_Action_Negative",
+        "P3_D1_D8_Alarm_Positive",
+        "P3_D1_D8_Alarm_Negative",
+    ],
+    [
+        "P3_D4_Displacement",
+        "P3_D1_D8_Alert_Positive",
+        "P3_D1_D8_Alert_Negative",
+        "P3_D1_D8_Action_Positive",
+        "P3_D1_D8_Action_Negative",
+        "P3_D1_D8_Alarm_Positive",
+        "P3_D1_D8_Alarm_Negative",
+    ],
+    [
+        "P3_D5_Displacement",
+        "P3_D1_D8_Alert_Positive",
+        "P3_D1_D8_Alert_Negative",
+        "P3_D1_D8_Action_Positive",
+        "P3_D1_D8_Action_Negative",
+        "P3_D1_D8_Alarm_Positive",
+        "P3_D1_D8_Alarm_Negative",
+    ],
+    [
+        "P3_D6_Displacement",
+        "P3_D1_D8_Alert_Positive",
+        "P3_D1_D8_Alert_Negative",
+        "P3_D1_D8_Action_Positive",
+        "P3_D1_D8_Action_Negative",
+        "P3_D1_D8_Alarm_Positive",
+        "P3_D1_D8_Alarm_Negative",
+    ],
+    [
+        "P3_D7_Displacement",
+        "P3_D1_D8_Alert_Positive",
+        "P3_D1_D8_Alert_Negative",
+        "P3_D1_D8_Action_Positive",
+        "P3_D1_D8_Action_Negative",
+        "P3_D1_D8_Alarm_Positive",
+        "P3_D1_D8_Alarm_Negative",
+    ],
+    [
+        "P3_D8_Displacement",
+        "P3_D1_D8_Alert_Positive",
+        "P3_D1_D8_Alert_Negative",
+        "P3_D1_D8_Action_Positive",
+        "P3_D1_D8_Action_Negative",
+        "P3_D1_D8_Alarm_Positive",
+        "P3_D1_D8_Alarm_Negative",
+    ],
+    [
+        "P4_D1_Displacement",
+        "P4_D1_D8_Alert_Positive",
+        "P4_D1_D8_Alert_Negative",
+        "P4_D1_D8_Action_Positive",
+        "P4_D1_D8_Action_Negative",
+        "P4_D1_D8_Alarm_Positive",
+        "P4_D1_D8_Alarm_Negative",
+    ],
+    [
+        "P4_D2_Displacement",
+        "P4_D1_D8_Alert_Positive",
+        "P4_D1_D8_Alert_Negative",
+        "P4_D1_D8_Action_Positive",
+        "P4_D1_D8_Action_Negative",
+        "P4_D1_D8_Alarm_Positive",
+        "P4_D1_D8_Alarm_Negative",
+    ],
+    [
+        "P4_D3_Displacement",
+        "P4_D1_D8_Alert_Positive",
+        "P4_D1_D8_Alert_Negative",
+        "P4_D1_D8_Action_Positive",
+        "P4_D1_D8_Action_Negative",
+        "P4_D1_D8_Alarm_Positive",
+        "P4_D1_D8_Alarm_Negative",
+    ],
+    [
+        "P4_D4_Displacement",
+        "P4_D4_D5_Alert_Positive",
+        "P4_D4_D5_Alert_Negative",
+        "P4_D4_D5_Action_Positive",
+        "P4_D4_D5_Action_Negative",
+        "P4_D4_D5_Alarm_Positive",
+        "P4_D4_D5_Alarm_Negative",
+    ],
+    [
+        "P4_D5_Displacement",
+        "P4_D4_D5_Alert_Positive",
+        "P4_D4_D5_Alert_Negative",
+        "P4_D4_D5_Action_Positive",
+        "P4_D4_D5_Action_Negative",
+        "P4_D4_D5_Alarm_Positive",
+        "P4_D4_D5_Alarm_Negative",
+    ],
+    [
+        "P4_D6_Displacement",
+        "P4_D4_D5_Alert_Positive",
+        "P4_D4_D5_Alert_Negative",
+        "P4_D4_D5_Action_Positive",
+        "P4_D4_D5_Action_Negative",
+        "P4_D4_D5_Alarm_Positive",
+        "P4_D4_D5_Alarm_Negative",
+    ],
+    [
+        "P4_D7_Displacement",
+        "P4_D4_D5_Alert_Positive",
+        "P4_D4_D5_Alert_Negative",
+        "P4_D4_D5_Action_Positive",
+        "P4_D4_D5_Action_Negative",
+        "P4_D4_D5_Alarm_Positive",
+        "P4_D4_D5_Alarm_Negative",
+    ],
+    [
+        "P4_D8_Displacement",
+        "P4_D4_D5_Alert_Positive",
+        "P4_D4_D5_Alert_Negative",
+        "P4_D4_D5_Action_Positive",
+        "P4_D4_D5_Action_Negative",
+        "P4_D4_D5_Alarm_Positive",
+        "P4_D4_D5_Alarm_Negative",
+    ],
+    [
+        "A1_RBLG_SG_1_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "A1_LBLG_SG_2_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SA1P1_RBLG_SG_1_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SA1P1_LBLG_SG_2_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SP1P2_RBLG_SG_1_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SP1P2_LBLG_SG_2_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SP2P3_RBLG_SG_1_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SP2P3_LBLG_SG_2_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SP3P4_RBLG_SG_1_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SP3P4_LBLG_SG_2_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SP4P5_RBLG_SG_1_Strain",
+        "P4_P5_Alert_Positive",
+        "P4_P5_Alert_Negative",
+        "P4_P5_Action_Positive",
+        "P4_P5_Action_Negative",
+        "P4_P5_Alarm_Positive",
+        "P4_P5_Alarm_Negative",
+    ],
+    [
+        "SP4P5_LBLG_SG_2_Strain",
+        "P4_P5_Alert_Positive",
+        "P4_P5_Alert_Negative",
+        "P4_P5_Action_Positive",
+        "P4_P5_Action_Negative",
+        "P4_P5_Alarm_Positive",
+        "P4_P5_Alarm_Negative",
+    ],
+    [
+        "SP5CP1_RBLG_SG_1_Strain",
+        "P5_CP1_Alert_Positive",
+        "P5_CP1_Alert_Negative",
+        "P5_CP1_Action_Positive",
+        "P5_CP1_Action_Negative",
+        "P5_CP1_Alarm_Positive",
+        "P5_CP1_Alarm_Negative",
+    ],
+    [
+        "SP5CP1_LBLG_SG_2_Strain",
+        "P5_CP1_Alert_Positive",
+        "P5_CP1_Alert_Negative",
+        "P5_CP1_Action_Positive",
+        "P5_CP1_Action_Negative",
+        "P5_CP1_Alarm_Positive",
+        "P5_CP1_Alarm_Negative",
+    ], #dl 1 ends here. dl 2 start 
+
+]
+## END - STRAIN CHART
+
 ################ END - GLOBAL COLUMN NAME DEFINED ################
 
 ################ START - SAVE THE LINE CHART ################
@@ -643,6 +1101,7 @@ def home():
         "Average": [],
         "Standard Deviation": []
     }
+
     # Iterate over each CSV file
     for tilt_meter_csv_file in tilt_meter_csv_files:
         # Read the CSV file into a DataFrame
@@ -1413,123 +1872,239 @@ def home():
 #   STRAIN GUGES CHARTS VIEW
 @main.route('/strain/')
 def strain():
-    shayam_bazar_viaduct_csv_files = [
-        dl[0]
-    ] 
+    # shayam_bazar_viaduct_csv_files = [
+    #     dl[0]
+    # ] 
     
-    P6_P7_BS1_csv_files  = [
-        dl[0],
-        dl[1]
-    ]
+    # P6_P7_BS1_csv_files  = [
+    #     dl[0],
+    #     dl[1]
+    # ]
 
-    P6_P7_BS3_csv_files = [
-        dl[1],
-        dl[2]
-    ]
+    # P6_P7_BS3_csv_files = [
+    #     dl[1],
+    #     dl[2]
+    # ]
 
-    P6_P7_BS5_csv_files = [
-        dl[2],
-        dl[3]
-    ]
+    # P6_P7_BS5_csv_files = [
+    #     dl[2],
+    #     dl[3]
+    # ]
 
-    P6_P7_BS2_csv_files = [
-        dl[0],
-        dl[1]
-    ]
+    # P6_P7_BS2_csv_files = [
+    #     dl[0],
+    #     dl[1]
+    # ]
 
-    P6_P7_BS4_csv_files = [
-        dl[1],
-        dl[2]
-    ]
+    # P6_P7_BS4_csv_files = [
+    #     dl[1],
+    #     dl[2]
+    # ]
 
-    P6_P7_BS6_csv_files = [
-        dl[2],
-        dl[3]
-    ]
+    # P6_P7_BS6_csv_files = [
+    #     dl[2],
+    #     dl[3]
+    # ]
 
-    dunlop_Viaduct_csv_files = [
-        dl[3]
-    ]
+    # dunlop_Viaduct_csv_files = [
+    #     dl[3]
+    # ]
 
-    P7_P8_BS4_additional_csv_files = [
-        dl[1],
-        dl[2]
-    ]
+    # P7_P8_BS4_additional_csv_files = [
+    #     dl[1],
+    #     dl[2]
+    # ]
 
-    chitpur_viaduct_csv_files = [
-        dl[4]
-    ]
+    # chitpur_viaduct_csv_files = [
+    #     dl[4]
+    # ]
 
-    # Create a list to store all the CSV files and their corresponding columns
-    csv_data_list = [
-        (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_RHS_columns),
-        (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_LHS_columns),
-        (P6_P7_BS1_csv_files, P6_P7_BS1_LHS_columns),
-        (P6_P7_BS3_csv_files, P6_P7_BS3_LHS_columns),
-        (P6_P7_BS5_csv_files, P6_P7_BS5_LHS_columns),
-        (P6_P7_BS2_csv_files, P6_P7_BS2_RHS_columns),
-        (P6_P7_BS4_csv_files, P6_P7_BS4_RHS_columns),
-        (P6_P7_BS6_csv_files, P6_P7_BS6_RHS_columns),
-        (dunlop_Viaduct_csv_files, dunlop_Viaduct_RHS_columns),
-        (dunlop_Viaduct_csv_files, dunlop_Viaduct_LHS_columns),
-        (P7_P8_BS4_additional_csv_files, P7_P8_BS4_additional_RHS_columns),
-        (chitpur_viaduct_csv_files, chitpur_viaduct_RHS_columns),
-        (chitpur_viaduct_csv_files, chitpur_viaduct_LHS_columns)
-    ]
+    # # Create a list to store all the CSV files and their corresponding columns
+    # csv_data_list = [
+    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_RHS_columns),
+    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_LHS_columns),
+    #     (P6_P7_BS1_csv_files, P6_P7_BS1_LHS_columns),
+    #     (P6_P7_BS3_csv_files, P6_P7_BS3_LHS_columns),
+    #     (P6_P7_BS5_csv_files, P6_P7_BS5_LHS_columns),
+    #     (P6_P7_BS2_csv_files, P6_P7_BS2_RHS_columns),
+    #     (P6_P7_BS4_csv_files, P6_P7_BS4_RHS_columns),
+    #     (P6_P7_BS6_csv_files, P6_P7_BS6_RHS_columns),
+    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_RHS_columns),
+    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_LHS_columns),
+    #     (P7_P8_BS4_additional_csv_files, P7_P8_BS4_additional_RHS_columns),
+    #     (chitpur_viaduct_csv_files, chitpur_viaduct_RHS_columns),
+    #     (chitpur_viaduct_csv_files, chitpur_viaduct_LHS_columns)
+    # ]
 
-    strain_charts_data = []
+    # strain_charts_data = []
 
-    # Iterate over each group of CSV files and their columns
-    for csv_files, columns in csv_data_list:
-        # Create an empty dictionary to store data for this group
-        group_data = {
-            "csv_files": csv_files, 
-            "columns": columns,
-            "data": []
-        }
+    # # Iterate over each group of CSV files and their columns
+    # for csv_files, columns in csv_data_list:
+    #     # Create an empty dictionary to store data for this group
+    #     group_data = {
+    #         "csv_files": csv_files, 
+    #         "columns": columns,
+    #         "data": []
+    #     }
 
-        ###############################################
-        #### THIS CODE RETURNING AN ERROR 
-        #### KeyError: "['SP6P7_BS1L_HAJ_SG_1_Strain', 'SP6P7_BS1L_HAJ_SG_2_Strain', 'SP6P7_BS1L_HAJ_SG_3_Strain', 'SP6P7_BS1L_AAJ_SG_1_Strain', 'SP6P7_BS1L_AAJ_SG_2_Strain', 'SP6P7_BS1L_AAJ_SG_3_Strain', 'SP6P7_BS1L_HBLBJ_SG1_Strain', 'SP6P7_BS1L_HBLBJ_SG2_Strain', 'SP6P7_BS1L_HBLBJ_SG3_Strain', 'SP6P7_BS1L_BLBJ_SG_1_Strain', 'SP6P7_BS1L_BLBJ_SG_2_Strain', 'SP6P7_BS1L_BLBJ_SG3_Strain', 'P7_BS1L_NJ_SG_3_Strain', 'P7_BS1R_NJ_SG_4_Strain'] not in index"
-        ###############################################
+    #     ###############################################
+    #     #### THIS CODE RETURNING AN ERROR 
+    #     #### KeyError: "['SP6P7_BS1L_HAJ_SG_1_Strain', 'SP6P7_BS1L_HAJ_SG_2_Strain', 'SP6P7_BS1L_HAJ_SG_3_Strain', 'SP6P7_BS1L_AAJ_SG_1_Strain', 'SP6P7_BS1L_AAJ_SG_2_Strain', 'SP6P7_BS1L_AAJ_SG_3_Strain', 'SP6P7_BS1L_HBLBJ_SG1_Strain', 'SP6P7_BS1L_HBLBJ_SG2_Strain', 'SP6P7_BS1L_HBLBJ_SG3_Strain', 'SP6P7_BS1L_BLBJ_SG_1_Strain', 'SP6P7_BS1L_BLBJ_SG_2_Strain', 'SP6P7_BS1L_BLBJ_SG3_Strain', 'P7_BS1L_NJ_SG_3_Strain', 'P7_BS1R_NJ_SG_4_Strain'] not in index"
+    #     ###############################################
         
-        # # Iterate over each CSV file in the group
-        # for csv_file in csv_files:
-        #     # Read the CSV file into a DataFrame
-        #     df = pd.read_csv(csv_file, skiprows=3)
+    #     # # Iterate over each CSV file in the group
+    #     # for csv_file in csv_files:
+    #     #     # Read the CSV file into a DataFrame
+    #     #     df = pd.read_csv(csv_file, skiprows=3)
 
-        #     # Extract data for the defined columns and store it in the dictionary
-        #     group_data["data"].extend(df[columns].values.tolist())
-        ############################################
-        ############################################
+    #     #     # Extract data for the defined columns and store it in the dictionary
+    #     #     group_data["data"].extend(df[columns].values.tolist())
+    #     ############################################
+    #     ############################################
 
-        # Iterate over each CSV file in the group
-        for csv_file in csv_files:
-            # Read the CSV file into a DataFrame
-            df = pd.read_csv(csv_file, skiprows=3)
-            df.columns = df.columns.str.strip()
+    #     # Iterate over each CSV file in the group
+    #     for csv_file in csv_files:
+    #         # Read the CSV file into a DataFrame
+    #         df = pd.read_csv(csv_file, skiprows=3)
+    #         df.columns = df.columns.str.strip()
 
-            # Find the common columns between DataFrame and specified columns
-            common_columns = list(set(columns).intersection(df.columns))
-            group_data["labels"] = list(df['DateTime'])
+    #         # Find the common columns between DataFrame and specified columns
+    #         common_columns = list(set(columns).intersection(df.columns))
+    #         group_data["labels"] = list(df['DateTime'])
             
-            # Extract data for the common columns and store it in the dictionary
-            for column in common_columns:
-                column_data = {
-                    "column_name": column,
-                    "csv_name": csv_file,
-                    "values": df[column].tolist()
-                }
+    #         # Extract data for the common columns and store it in the dictionary
+    #         for column in common_columns:
+    #             column_data = {
+    #                 "column_name": column,
+    #                 "csv_name": csv_file,
+    #                 "values": df[column].tolist()
+    #             }
                 
-                group_data["data"].append(column_data)
+    #             group_data["data"].append(column_data)
+
+    #     # Append the data for this group to the list for all CSV files
+    #     strain_charts_data.append(group_data)
+
+
+
+    # # Define the CSV files and their corresponding columns for generating the strain charts
+    # csv_data_list = [
+    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_RHS_columns),
+    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_LHS_columns),
+    #     (P6_P7_BS1_csv_files, P6_P7_BS1_LHS_columns),
+    #     (P6_P7_BS3_csv_files, P6_P7_BS3_LHS_columns),
+    #     (P6_P7_BS5_csv_files, P6_P7_BS5_LHS_columns),
+    #     (P6_P7_BS2_csv_files, P6_P7_BS2_RHS_columns),
+    #     (P6_P7_BS4_csv_files, P6_P7_BS4_RHS_columns),
+    #     (P6_P7_BS6_csv_files, P6_P7_BS6_RHS_columns),
+    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_RHS_columns),
+    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_LHS_columns),
+    #     (P7_P8_BS4_additional_csv_files, P7_P8_BS4_additional_RHS_columns),
+    #     (chitpur_viaduct_csv_files, chitpur_viaduct_RHS_columns),
+    #     (chitpur_viaduct_csv_files, chitpur_viaduct_LHS_columns)
+    # ]
+
+    # strain_charts_data = []
+
+    # # Iterate over each group of CSV files and their columns
+    # for csv_files, columns in csv_data_list:
+    #     # Create an empty dictionary to store data for this group
+    #     group_data = {
+    #         "csv_files": csv_files, 
+    #         "columns": columns,
+    #         "data": [],
+    #         "labels": []
+    #     }
+
+    #     # Iterate over each CSV file in the group
+    #     for csv_file in csv_files:
+    #         # Read the CSV file into a DataFrame
+    #         df = pd.read_csv(csv_file, skiprows=3)
+    #         df.columns = df.columns.str.strip()
+
+    #         # Find the common columns between DataFrame and specified columns
+    #         common_columns = list(set(columns).intersection(df.columns))
+    #         group_data["labels"] = list(df['DateTime'])
+            
+    #         # Extract data for the common columns and store it in the dictionary
+    #         for column in common_columns:
+    #             column_data = {
+    #                 "column_name": column,
+    #                 "csv_name": csv_file,
+    #                 "values": df[column].tolist()
+    #             }
+                
+    #             group_data["data"].append(column_data)
+
+    #     # Append the data for this group to the list for all CSV files
+    #     strain_charts_data.append(group_data)
+
+    # Define the CSV files and their corresponding columns for generating the strain charts
+    # csv_data_list = [
+    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_RHS_columns),
+    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_LHS_columns),
+    #     (P6_P7_BS1_csv_files, P6_P7_BS1_LHS_columns),
+    #     (P6_P7_BS3_csv_files, P6_P7_BS3_LHS_columns),
+    #     (P6_P7_BS5_csv_files, P6_P7_BS5_LHS_columns),
+    #     (P6_P7_BS2_csv_files, P6_P7_BS2_RHS_columns),
+    #     (P6_P7_BS4_csv_files, P6_P7_BS4_RHS_columns),
+    #     (P6_P7_BS6_csv_files, P6_P7_BS6_RHS_columns),
+    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_RHS_columns),
+    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_LHS_columns),
+    #     (P7_P8_BS4_additional_csv_files, P7_P8_BS4_additional_RHS_columns),
+    #     (chitpur_viaduct_csv_files, chitpur_viaduct_RHS_columns),
+    #     (chitpur_viaduct_csv_files, chitpur_viaduct_LHS_columns)
+    # ]
+
+    # Initialize a list to store chart data for all charts
+    strain_chart_datas = []
+
+
+    # Iterate over each CSV file in the group
+    for csv_file in dl:
+        # Read the CSV file into a DataFrame
+        df = pd.read_csv(csv_file, skiprows=3)
+        df.columns = df.columns.str.strip()
+
+        # Initialize a list to store chart data for this CSV file
+        csv_charts_data = []
+
+        for i, columns in enumerate(strain_chart_columns):
+            # Check if all required columns exist in the DataFrame
+            if all(column in df.columns for column in columns):
+                # Create a dictionary to store chart data
+                chart_data = {
+                    "dl_name": csv_file,
+                    "chart_title": f"Chart {i + 1}",
+                    "labels": list(df['DateTime']),
+                    "datasets": []
+                }
+
+                for column in columns:
+                    # Create a dataset dictionary for this column
+                    dataset = {
+                        "label": column,
+                        "data": list(df[column])
+                    }
+
+                    # Append the dataset to the datasets list inside the main chart_data dictionary
+                    chart_data["datasets"].append(dataset)
+
+                # Generate a random ID for the chart
+                chart_data["canvas_id"] = generate_random_id()
+
+                # Append the chart data to the list for this CSV file
+                strain_chart_datas.append(chart_data)
+            else:
+                print(f"Required columns not found in {dl}. Skipping chart {i + 1}.")
 
         # Append the data for this group to the list for all CSV files
-        strain_charts_data.append(group_data)
+        strain_chart_datas.append(csv_charts_data)
 
     return render_template(
-        'strain.html', 
-        strain_charts_data=strain_charts_data
-    ) 
+        'strain.html',
+        strain_chart_datas=strain_chart_datas
+    )
 
 #   ACCELEROMETERS VIEW 
 @main.route("/accelerometers/")
@@ -1560,8 +2135,9 @@ def accelerometers():
 @main.route("/lvdt/")
 def ldvt():
     # --------------------------------------- #
-    # -- SHOWING LINE CHART OF LDVT Data --- #
+    # -- SHOWING LINE CHART OF LDVT Data ---- #
     # --------------------------------------- #
+    
     chart_columns = [
         ['P6_BS1_LGS_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
         ['P6_BS2_LGS_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
