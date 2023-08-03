@@ -1,58 +1,53 @@
 {% extends "root.html" %}
 {% block title %}
-BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
+    BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
 {% endblock %}
-{% block styles %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
+{% block styles %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
 {% block content %}
-<div class="container">
-    <script>
-        console.log({{ strain_chart_datas | safe}})
-    </script>
-    <!-- Other HTML content -->
-    {% for group_data in strain_chart_datas %}
-    <script>
-        console.log('---')
-        console.log(group_data)
+    <div class="container">
+        <script>console.log({{ strain_chart_datas | safe}})</script>
+        <!-- Other HTML content -->
+        {% for group_data in strain_chart_datas %}
+            <script>
         // Get data from the Jinja context
-        let strainData{{ loop.index }} = {{ group_data.data | safe }}
-        let labels{{ loop.index }} = {{ group_data['labels'] | safe }}
+        let strainData_{{ group_data.canvas_id }} = {{ group_data.datasets | safe }}
+        let labels_{{ group_data.canvas_id }} = {{ group_data['labels'] | safe }}
 
         // Create an array to store datasets for this group
-        let datasets{{ loop.index }} =[];
+        let datasets_{{ group_data.canvas_id }} =[];
 
         // Define an array of colors
-        const lineColors{{ loop.index }} = ['blue', 'red', 'green', 'purple', 'orange', 'yellow', 'cyan']; // Add more colors as needed
+        const lineColors_{{ group_data.canvas_id }} = ['blue', 'red', 'green', 'purple', 'orange', 'yellow', 'cyan']; // Add more colors as needed
 
         // Iterate over each dataset in the group and create a separate dataset for each line
-        strainData{{ loop.index }}.forEach(function (dataset, datasetIndex) {
-            datasets{{ loop.index }}.push({
-                data: dataset.values,
-                label: dataset.column_name,
-                borderColor: lineColors{{loop.index}}[datasetIndex % lineColors{{loop.index}}.length], // Use different colors for each line
+        strainData_{{ group_data.canvas_id }}.forEach(function (dataset, datasetIndex) {
+            datasets_{{ group_data.canvas_id }}.push({
+                data: dataset.data,
+                label: dataset.label,
+                borderColor: lineColors_{{ group_data.canvas_id }}[datasetIndex % lineColors_{{ group_data.canvas_id }}.length], // Use different colors for each line
                 fill: false
             });
         });
 
         // Create Chart.js Line chart
-        const ctx{{loop.index}} = document.createElement('canvas');
-        ctx{{loop.index}}.setAttribute('id', 'chart-{{ loop.index }}');
-        ctx{{loop.index}}.setAttribute('width', '400');
-        ctx{{loop.index}}.setAttribute('height', '200');
-        document.body.appendChild(ctx{{loop.index}});
-        ctx{{loop.index}}.getContext('2d');
+        const ctx{{ group_data.canvas_id }} = document.createElement('canvas');
+        ctx{{ group_data.canvas_id }}.setAttribute('id', 'chart-{{ loop.index }}');
+        ctx{{ group_data.canvas_id }}.setAttribute('width', '400');
+        ctx{{ group_data.canvas_id }}.setAttribute('height', '200');
+        document.body.appendChild(ctx{{ group_data.canvas_id }});
+        ctx{{ group_data.canvas_id }}.getContext('2d');
 
-        const myChart{{ loop.index }} = new Chart(ctx{{loop.index}}, {
+        const myChart{{ group_data.canvas_id }} = new Chart(ctx{{ group_data.canvas_id }}, {
             type: 'line',
             data: {
-                labels: labels{{ loop.index }},
-                datasets: datasets{{ loop.index }}
+                labels: labels_{{ group_data.canvas_id }},
+                datasets: datasets_{{ group_data.canvas_id }}
             },
             options: {
                 plugins: {
                     title: {
                         display: true,
-                        text: "a chart title",
+                        text: '{{ group_data.chart_for | title }}',
                         color: 'navy',
                         position: 'bottom',
                         align: 'center',
@@ -110,7 +105,7 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
     //         }
     //     });
     // });
-    </script>
-    {% endfor %}
-</div>
+            </script>
+        {% endfor %}
+    </div>
 {% endblock %}

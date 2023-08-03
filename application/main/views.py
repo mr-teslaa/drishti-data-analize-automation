@@ -16,17 +16,39 @@ import re
 import random
 import string
 import datetime
+import threading
+from io import BytesIO
 import numpy as np
 import pandas as pd
 from flask import Blueprint
 from flask import render_template
 from flask import jsonify
-
-
+from flask import make_response
+from flask import redirect
+from flask import url_for
+from flask import render_template_string
 
 # import pdfkit
-from flask import send_file
+import pdfkit
+# from flask import send_file
+# from reportlab.lib.pagesizes import letter
+# from reportlab.pdfgen import canvas
+from PyPDF2 import PdfWriter
+from PyPDF2 import PdfReader
+
+from flask import current_app
+
 main = Blueprint('main', __name__)
+
+# Global variables to store PDF content and template data
+pdf_content = []
+template_data_dict = {}
+routes_to_collect = ['/laser', '/temperature']  # Specify the routes you want to collect
+data_collected = False  # Flag to check if template data has been collected
+data_collection_lock = threading.Lock()  # Lock for thread-safe data collection
+
+# Import pdfkit
+
 
 # DEFINING THE CSV FILES
 weather_csv = "AutomaticWeatherStation_Data_List.csv"
@@ -2075,12 +2097,79 @@ def strain():
                 # Create a dictionary to store chart data
                 chart_data = {
                     "dl_name": csv_file,
+                    "chart_for": '',
                     "chart_title": f"Chart {i + 1}",
                     "labels": list(df['DateTime']),
                     "datasets": []
                 }
 
                 for column in columns:
+
+                    if column in shayam_bazar_viaduct_RHS_columns:
+                        chart_data["chart_for"] = 'shayam_bazar_viaduct_RHS'
+                    # else:
+                    #     chart_data["chart_for"] = ''
+
+                    if column in shayam_bazar_viaduct_LHS_columns:
+                        chart_data["chart_for"] = 'shayam_bazar_viaduct_LHS'
+                    # else:
+                    #     chart_data["chart_for"] = ''
+
+                    if column in P6_P7_BS1_LHS_columns:
+                        chart_data["chart_for"] = 'P6_P7_BS1_LHS'
+                    # else:
+                    #     chart_data["chart_for"] = ''
+
+                    if column in P6_P7_BS3_LHS_columns:
+                        chart_data["chart_for"] = 'P6_P7_BS3_LHS'
+                    # else:
+                    #     chart_data["chart_for"] = ''
+
+                    if column in P6_P7_BS5_LHS_columns:
+                        chart_data["chart_for"] = 'P6_P7_BS5_LHS'
+                    # else:
+                    #     chart_data["chart_for"] = ''
+
+                    if column in P6_P7_BS2_RHS_columns:
+                        chart_data["chart_for"] = 'P6_P7_BS2_RHS'
+                    # else:
+                    #     chart_data["chart_for"] = ''
+
+                    if column in P6_P7_BS4_RHS_columns:
+                        chart_data["chart_for"] = 'P6_P7_BS4_RHS'
+                    # else:
+                    #     chart_data["chart_for"] = ''
+
+                    if column in P6_P7_BS6_RHS_columns:
+                        chart_data["chart_for"] = 'P6_P7_BS6_RHS'
+                    # else:
+                    #     chart_data["chart_for"] = ''
+
+                    if column in dunlop_Viaduct_RHS_columns:
+                        chart_data["chart_for"] = 'dunlop_Viaduct_RHS'
+                    # else:
+                    #     chart_data["chart_for"] = ''
+
+                    if column in dunlop_Viaduct_LHS_columns:
+                        chart_data["chart_for"] = 'dunlop_Viaduct_LHS'
+                    # else:
+                    #     chart_data["chart_for"] = ''
+
+                    if column in P7_P8_BS4_additional_RHS_columns:
+                        chart_data["chart_for"] = 'P7_P8_BS4_additional_RHS'
+                    # else:
+                    #     chart_data["chart_for"] = ''
+
+                    if column in chitpur_viaduct_RHS_columns:
+                        chart_data["chart_for"] = 'chitpur_viaduct_RHS'
+                    # else:
+                    #     chart_data["chart_for"] = ''
+
+                    if column in chitpur_viaduct_LHS_columns:
+                        chart_data["chart_for"] = 'chitpur_viaduct_LHS'
+                    # else:
+                    #     chart_data["chart_for"] = ''
+
                     # Create a dataset dictionary for this column
                     dataset = {
                         "label": column,
@@ -2099,7 +2188,7 @@ def strain():
                 print(f"Required columns not found in {dl}. Skipping chart {i + 1}.")
 
         # Append the data for this group to the list for all CSV files
-        strain_chart_datas.append(csv_charts_data)
+        # strain_chart_datas.append(csv_charts_data)
 
     return render_template(
         'strain.html',
@@ -2321,6 +2410,10 @@ def laser():
 
         # Append data dictionary to the array
         laser_charts_data.append(chart_data)
+
+    # Store the chart data in the global dictionary
+    template_data_dict['laser'] = laser_charts_data
+
     return render_template('laser.html', laser_charts_data=laser_charts_data)
 
 
@@ -2356,5 +2449,89 @@ def temperature():
             }
             
             temperature_charts_data.append(column_data)
+    
+    # Store the chart data in the global dictionary
+    template_data_dict['temperature'] = temperature_charts_data
 
     return render_template('temperature.html', temperature_charts_data=temperature_charts_data)
+
+
+
+# # Function to collect template data from all routes
+# def collect_template_data():
+#     with current_app.test_request_context():
+#         with data_collection_lock:
+#             global data_collected
+#             if not data_collected:
+#                 for rule in current_app.url_map.iter_rules():
+#                     if rule.endpoint != 'static' and rule.endpoint.startswith('main.'):
+#                         # Simulate the request for each route and collect data
+#                         url = f"{rule.rule.lstrip('/')}"
+#                         with current_app.test_client() as client:
+#                             response = client.get(url)
+#                             template_data_dict[url] = response.get_data(as_text=True)
+#                 data_collected = True
+
+
+# Function to collect template data from all routes
+def collect_template_data():
+    with current_app.app_context():
+        with data_collection_lock:
+            global data_collected
+            if not data_collected:
+                for route in routes_to_collect:
+                    url = route
+                    # Render the template and store the rendered data
+                    with current_app.test_request_context():
+                        template_data = render_template(f'{route}.html')
+                    template_data_dict[url] = template_data
+                data_collected = True
+
+# Function to generate a PDF for each template
+def generate_pdf(template_data, lock):
+    # Convert the HTML to PDF using pdfkit
+    pdf = pdfkit.from_string(template_data, False)
+
+    # Append the PDF content to the global list
+    pdf_content.append(pdf)
+    lock.release()
+
+@main.route('/generate_pdf')
+def generate_combined_pdf():
+    # Check if data has been collected, if not redirect to /collect_data
+    global data_collected
+    if not data_collected:
+        return redirect(url_for('main.collect_data'))
+
+    lock = threading.Lock()
+
+    # Start multiple threads to generate PDFs for each template
+    threads = []
+    for template_data in template_data_dict.values():
+        thread = threading.Thread(target=generate_pdf, args=(template_data, lock))
+        threads.append(thread)
+        thread.start()
+
+    # Wait for all threads to finish
+    for thread in threads:
+        thread.join()
+
+    # Combine PDFs into a single PDF
+    output = BytesIO()
+    pdf_writer = PdfWriter()
+    for content in pdf_content:
+        pdf_writer.add_page(PdfReader(BytesIO(content)).pages[0])
+    pdf_writer.write(output)
+
+    # Prepare response with PDF content
+    response = make_response(output.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'attachment; filename=combined.pdf'
+    return response
+
+@main.route('/collect_data')
+def collect_data():
+    # Collect template data from all routes
+    collect_template_data()
+    # Redirect back to /generate_pdf for PDF generation
+    return redirect(url_for('main.generate_combined_pdf'))
