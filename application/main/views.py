@@ -13,17 +13,44 @@
 
 import os
 import re
+import random
+import string
 import datetime
+import threading
+from io import BytesIO
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 from flask import Blueprint
 from flask import render_template
+from flask import jsonify
+from flask import make_response
+from flask import redirect
+from flask import url_for
+from flask import render_template_string
 
 # import pdfkit
-from flask import send_file
+import pdfkit
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+# from flask import send_file
+# from reportlab.lib.pagesizes import letter
+# from reportlab.pdfgen import canvas
+# from PyPDF2 import PdfWriter
+# from PyPDF2 import PdfReader
+
+from flask import current_app
+
 main = Blueprint('main', __name__)
+
+# Global variables to store PDF content and template data
+pdf_content = []
+template_data_dict = {}
+routes_to_collect = ['/laser', '/temperature']  # Specify the routes you want to collect
+data_collected = False  # Flag to check if template data has been collected
+data_collection_lock = threading.Lock()  # Lock for thread-safe data collection
+
+# Import pdfkit
+
 
 # DEFINING THE CSV FILES
 weather_csv = "AutomaticWeatherStation_Data_List.csv"
@@ -32,7 +59,7 @@ laser_csv = "TallahROBLaser_Data_List.csv"
 
 accelerometers_csv = [
     "Tallah_ROB Accelerometer_3DACC1_A1_Approach -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC2_P6_P7_RHS -Data List13Jul23.csv",
+    "Tallah_ROB Accelerometer_3DACC2_P6_P7_RHS -Data List13Jul23.csv",
     # "Tallah_ROB Accelerometer_3DACC3_P6_P7_LHS -Data List13Jul23.csv",
     # "Tallah_ROB Accelerometer_3DACC4_P7_P8_RHS -Data List13Jul23.csv",
     # "Tallah_ROB Accelerometer_3DACC5_P7_P8_LHS -Data List13Jul23.csv",
@@ -76,20 +103,2122 @@ dl = [
 ]
 
 corrosion_csv = "Tallah_Corrosion_Current-DataList.csv"
+
+################ START - GLOBAL COLUMN NAME DEFINED ################
+# Define the columns for analysis
+shayam_bazar_viaduct_RHS_columns = [
+    "A1_RBLG_SG_1_Strain",
+    "SA1P1_RBLG_SG_1_Strain",
+    "SP1P2_RBLG_SG_1_Strain",
+    "SP2P3_RBLG_SG_1_Strain",
+    "SP3P4_RBLG_SG_1_Strain",
+    "SP4P5_RBLG_SG_1_Strain",
+    "SP5CP1_RBLG_SG_1_Strain"
+]
+
+shayam_bazar_viaduct_LHS_columns = [
+    "A1_LBLG_SG_2_Strain",
+    "SA1P1_LBLG_SG_2_Strain",
+    "SP1P2_LBLG_SG_2_Strain",
+    "SP2P3_LBLG_SG_2_Strain",
+    "SP3P4_LBLG_SG_2_Strain",
+    "SP4P5_LBLG_SG_2_Strain",
+    "SP5CP1_LBLG_SG_2_Strain"
+]
+
+# Define the columns for analysis
+P6_P7_BS1_LHS_columns = [
+    "SP6P7_BS1R_HAJ_SG_1_Strain",
+    "SP6P7_BS1R_HAJ_SG_2_Strain",
+    "SP6P7_BS1R_HAJ_SG_3_Strain",
+    "SP6P7_BS1R_AAJ_SG_1_Strain",
+    "SP6P7_BS1R_AAJ_SG_2_Strain",
+    "SP6P7_BS1R_AAJ_SG_3_Strain",
+    "SP6P7_BS1R_HBLBJ_SG1_Strain",
+    "SP6P7_BS1R_HBLBJ_SG2_Strain",
+    "SP6P7_BS1R_HBLBJ_SG3_Strain",
+    "SP6P7_BS1R_BLBJ_SG_1_Strain",
+    "SP6P7_BS1R_BLBJ_SG_2_Strain",
+    "SP6P7_BS1R_BLBJ_SG_3_Strain",
+    "SP6P7_BS1L_HAJ_SG_1_Strain",
+    "SP6P7_BS1L_HAJ_SG_2_Strain",
+    "SP6P7_BS1L_HAJ_SG_3_Strain",
+    "SP6P7_BS1L_AAJ_SG_1_Strain",
+    "SP6P7_BS1L_AAJ_SG_2_Strain",
+    "SP6P7_BS1L_AAJ_SG_3_Strain",
+    "SP6P7_BS1L_HBLBJ_SG1_Strain",
+    "SP6P7_BS1L_HBLBJ_SG2_Strain",
+    "SP6P7_BS1L_HBLBJ_SG3_Strain",
+    "SP6P7_BS1L_BLBJ_SG_1_Strain",
+    "SP6P7_BS1L_BLBJ_SG_2_Strain",
+    "SP6P7_BS1L_BLBJ_SG3_Strain",
+    "P6_BS1L_NJ_SG_1_Strain",
+    "P6_BS1R_NJ_SG_2_Strain",
+    "P7_BS1L_NJ_SG_3_Strain",
+    "P7_BS1R_NJ_SG_4_Strain"
+]
+
+# Define the columns for analysis
+P6_P7_BS3_LHS_columns = [
+    "SP7P8_BS3R_HAJ_SG_1_Strain",
+    "SP7P8_BS3R_HAJ_SG_2_Strain",
+    "SP7P8_BS3R_HAJ_SG_3_Strain",
+    "SP7P8_BS3R_AAJ_SG_1_Strain",
+    "SP7P8_BS3R_AAJ_SG_2_Strain",
+    "SP7P8_BS3R_AAJ_SG_3_Strain",
+    "SP7P8_BS3R_HBLBJ_SG1_Strain",
+    "SP7P8_BS3R_HBLBJ_SG2_Strain",
+    "SP7P8_BS3R_HBLBJ_SG3_Strain",
+    "SP7P8_BS3R_BLBJ_SG_1_Strain",
+    "SP7P8_BS3R_BLBJ_SG_2_Strain",
+    "SP7P8_BS3R_BLBJ_SG_3_Strain",
+    "SP7P8_BS3L_HAJ_SG_1_Strain",
+    "SP7P8_BS3L_HAJ_SG_2_Strain",
+    "SP7P8_BS3L_HAJ_SG_3_Strain",
+    "SP7P8_BS3L_AAJ_SG_1_Strain",
+    "SP7P8_BS3L_AAJ_SG_2_Strain",
+    "SP7P8_BS3L_AAJ_SG_3_Strain",
+    "SP7P8_BS3L_HBLBJ_SG1_Strain",
+    "SP7P8_BS3L_HBLBJ_SG2_Strain",
+    "SP7P8_BS3L_HBLBJ_SG3_Strain",
+    "SP7P8_BS3L_BLBJ_SG_1_Strain",
+    "SP7P8_BS3L_BLBJ_SG_2_Strain",
+    "SP7P8_BS3L_BLBJ_SG_3_Strain",
+    "P7_BS3L_NJ_SG_1_Strain",
+    "P7_BS3R_NJ_SG_2_Strain",
+    "P8_BS3L_NJ_SG_3_Strain"
+]
+
+# Define the columns for analysis
+P6_P7_BS5_LHS_columns = [
+    "SP9CP2_BS5R_HAJ_SG_1_Strain",
+    "SP9CP2_BS5R_HAJ_SG_2_Strain",
+    "SP9CP2_BS5R_HAJ_SG_3_Strain",
+    "SP9CP2_BS5R_AAJ_SG_1_Strain",
+    "SP9CP2_BS5R_AAJ_SG_2_Strain",
+    "SP9CP2_BS5R_AAJ_SG_3_Strain",
+    "SP9CP2_BS5R_HBLBJSG1_Strain",
+    "SP9CP2_BS5R_HBLBJSG2_Strain",
+    "SP9CP2_BS5R_HBLBJSG3_Strain",
+    "SP9CP2_BS5R_BLBJ_SG1_Strain",
+    "SP9CP2_BS5R_BLBJ_SG2_Strain",
+    "SP9CP2_BS5R_BLBJ_SG3_Strain",
+    "SP9CP2_BS5L_HAJ_SG1_Strain",
+    "SP9CP2_BS5L_HAJ_SG2_Strain",
+    "SP9CP2_BS5L_HAJ_SG3_Strain",
+    "SP9CP2_BS5L_AAJ_SG1_Strain",
+    "SP9CP2_BS5L_AAJ_SG2_Strain",
+    "SP9CP2_BS5L_AAJ_SG3_Strain",
+    "SP9CP2_BS5L_HBLBJSG1_Strain",
+    "SP9CP2_BS5L_HBLBJSG2_Strain",
+    "SP9CP2_BS5L_HBLBJSG3_Strain",
+    "SP9CP2_BS5L_BLBJSG1_Strain",
+    "SP9CP2_BS5L_BLBJSG2_Strain",
+    "SP9CP2_BS5L_BLBJSG3_Strain",
+    "P9_BS5L_NJ_SG_1_Strain",
+    "P9_BS5R_NJ_SG_2_Strain",
+    "CP2_BS5L_NJ_SG_3_Strain",
+    "CP2_BS5R_NJ_SG_4_Strain"
+]
+
+# Define the columns for analysis
+P6_P7_BS2_RHS_columns = [
+    "SP6P7_BS2L_HAJ_SG_1_Strain",
+    "SP6P7_BS2L_HAJ_SG_2_Strain",
+    "SP6P7_BS2L_HAJ_SG_3_Strain",
+    "SP6P7_BS2L_AAJ_SG_1_Strain",
+    "SP6P7_BS2L_AAJ_SG_2_Strain",
+    "SP6P7_BS2L_AAJ_SG_3_Strain",
+    "SP6P7_BS2L_HBLBJ_SG1_Strain",
+    "SP6P7_BS2L_HBLBJ_SG2_Strain",
+    "SP6P7_BS2L_HBLBJ_SG3_Strain",
+    "SP6P7_BS2L_BLBJ_SG_1_Strain",
+    "SP6P7_BS2L_BLBJ_SG_2_Strain",
+    "SP6P7_BS2L_BLBJ_SG_3_Strain",
+    "SP6P7_BS2R_HAJ_SG_1_Strain",
+    "SP6P7_BS2R_HAJ_SG_2_Strain",
+    "SP6P7_BS2R_HAJ_SG_3_Strain",
+    "SP6P7_BS2R_AAJ_SG_1_Strain",
+    "SP6P7_BS2R_AAJ_SG_2_Strain",
+    "SP6P7_BS2R_AAJ_SG_3_Strain",
+    "SP6P7_BS2R_HBLBJ_SG1_Strain",
+    "SP6P7_BS2R_HBLBJ_SG2_Strain",
+    "SP6P7_BS2R_HBLBJ_SG3_Strain",
+    "SP6P7_BS2R_BLBJ_SG_1_Strain",
+    "SP6P7_BS2R_BLBJ_SG_2_Strain",
+    "SP6P7_BS2R_BLBJ_SG_3_Strain",
+    "P6_BS2L_NJ_SG_1_Strain",
+    "P6_BS2R_NJ_SG_2_Strain",
+    "P7_BS2L_NJ_SG_3_Strain",
+    "P7_BS2R_NJ_SG_4_Strain"
+]
+
+# Define the columns for analysis
+P6_P7_BS4_RHS_columns = [
+    "SP7P8_BS4L_HAJ_SG_1_Strain",
+    "SP7P8_BS4L_HAJ_SG_2_Strain",
+    "SP7P8_BS4L_HAJ_SG_3_Strain",
+    "SP7P8_BS4L_AAJ_SG_1_Strain",
+    "SP7P8_BS4L_AAJ_SG_2_Strain",
+    "SP7P8_BS4L_AAJ_SG_3_Strain",
+    "SP7P8_BS4L_HBLBJ_SG1_Strain",
+    "SP7P8_BS4L_HBLBJ_SG2_Strain",
+    "SP7P8_BS4L_HBLBJ_SG3_Strain",
+    "SP7P8_BS4L_BLBJ_SG_1_Strain",
+    "SP7P8_BS4L_BLBJ_SG_2_Strain",
+    "SP7P8_BS4L_BLBJ_SG_3_Strain",
+    "SP7P8_BS4R_HAJ_SG_1_Strain",
+    "SP7P8_BS4R_HAJ_SG_2_Strain",
+    "SP7P8_BS4R_HAJ_SG_3_Strain",
+    "SP7P8_BS4R_AAJ_SG_1_Strain",
+    "SP7P8_BS4R_AAJ_SG_2_Strain",
+    "SP7P8_BS4R_AAJ_SG_3_Strain",
+    "SP7P8_BS4R_HBLBJ_SG1_Strain",
+    "SP7P8_BS4R_HBLBJ_SG2_Strain",
+    "SP7P8_BS4R_HBLBJ_SG3_Strain",
+    "SP7P8_BS4R_BLBJ_SG_1_Strain",
+    "SP7P8_BS4R_BLBJ_SG_2_Strain",
+    "SP7P8_BS4R_BLBJ_SG_3_Strain",
+    "P7_BS4L_NJ_SG_1_Strain",
+    "P7_BS4R_NJ_SG_2_Strain",
+    "P8_BS4L_NJ_SG_3_Strain",
+    "P8_BS4R_NJ_SG_4_Strain"
+]
+
+# Define the columns for analysis
+P6_P7_BS6_RHS_columns = [
+    "SP9CP2_BS6L_HAJ_SG_1_Strain",
+    "SP9CP2_BS6L_HAJ_SG_2_Strain",
+    "SP9CP2_BS6L_HAJ_SG_3_Strain",
+    "SP9CP2_BS6L_AAJ_SG_1_Strain",
+    "SP9CP2_BS6L_AAJ_SG_2_Strain",
+    "SP9CP2_BS6L_AAJ_SG_3_Strain",
+    "SP9CP2_BS6L_HBLBJSG1_Strain",
+    "SP9CP2_BS6L_HBLBJSG2_Strain",
+    "SP9CP2_BS6L_HBLBJSG3_Strain",
+    "SP9CP2_BS6L_BLBJ_SG1_Strain",
+    "SP9CP2_BS6L_BLBJ_SG2_Strain",
+    "SP9CP2_BS6L_BLBJ_SG3_Strain",
+    "SP9CP2_BS6R_HAJ_SG_1_Strain",
+    "SP9CP2_BS6R_HAJ_SG_2_Strain",
+    "SP9CP2_BS6R_HAJ_SG_3_Strain",
+    "SP9CP2_BS6R_AAJ_SG1_Strain",
+    "SP9CP2_BS6R_AAJ_SG_2_Strain",
+    "SP9CP2_BS6R_AAJ_SG_3_Strain",
+    "SP9CP2_BS6R_HBLBJSG1_Strain",
+    "SP9CP2_BS6R_HBLBJSG2_Strain",
+    "SP9CP2_BS6R_HBLBJSG3_Strain",
+    "SP9CP2_BS6R_BLBJSG1_Strain",
+    "SP9CP2_BS6R_BLBJSG2_Strain",
+    "SP9CP2_BS6R_BLBJSG3_Strain",
+    "P9_BS6L_NJ_SG_1_Strain",
+    "P9_BS6R_NJ_SG_2_Strain",
+    "CP2_BS6L_NJ_SG_3_Strain",
+    "CP2_BS6R_NJ_SG_4_Strain"
+]
+
+# Define the columns for analysis
+dunlop_Viaduct_RHS_columns = [
+    "SCP2P10_RBLG_SG_1_Strain",
+    "SP10P11_RBLG_SG_1_Strain",
+    "SP11P12_RBLG_SG_1_Strain",
+    "SP12P13_RBLG_SG_1_Strain",
+    "SP13P14_RBLG_SG_1_Strain",
+    "SP14A2_RBLG_SG_1_Strain",
+    "A2_RBLG_SG_1_Strain"
+]
+
+dunlop_Viaduct_LHS_columns = [
+    "SCP2P10_LBLG_SG_2_Strain",
+    "SP10P11_LBLG_SG_2_Strain",
+    "SP11P12_LBLG_SG_2_Strain",
+    "SP12P13_LBLG_SG_2_Strain",
+    "SP13P14_LBLG_SG_2_Strain",
+    "SP14A2_LBLG_SG_2_Strain",
+    "A2_LBLG_SG_2_Strain"
+]
+
+# Define the columns for analysis
+P7_P8_BS4_additional_RHS_columns = [
+    "SP7P8_BS4L_HBLBJ_SG4_Strain",
+    "Additional_SG13_Strain",
+    "Additional_SG14_Strain"
+]
+
+# Define the columns for analysis
+chitpur_viaduct_RHS_columns = [
+    "SP16P17_RBLG_SG_1_Strain",
+    "SP17P18_RBLG_SG_1_Strain",
+    "SP18P19_RBLG_SG_1_Strain",
+    "SP19P20_RBLG_SG_1_Strain",
+    "SP20P21_RBLG_SG_1_Strain",
+    "SP21A3_RBLG_SG_1_Strain",
+    "A3_RBLG_SG_1_Strain"
+]
+
+chitpur_viaduct_LHS_columns = [
+    "SP16P17_LBLG_SG_2_Strain",
+    "SP17P18_LBLG_SG_2_Strain",
+    "SP18P19_LBLG_SG_2_Strain",
+    "SP19P20_LBLG_SG_2_Strain",
+    "SP20P21_LBLG_SG_2_Strain",
+    "SP21A3_LBLG_SG_2_Strain",
+    "A3_LBLG_SG_2_Strain"
+]
+
+## START - STRAIN CHART
+strain_chart_columns = [
+    # dl 1 start here
+    [
+        "SP6P7_BS1R_HAJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_AAJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_HAJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_AAJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_HAJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_AAJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_HBLBJ_SG1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_BLBJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_HBLBJ_SG2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_BLBJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_HBLBJ_SG3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1R_BLBJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2L_HAJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2L_AAJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2L_HAJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2L_AAJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2L_HAJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2L_AAJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2L_HBLBJ_SG1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "A1_RBLG_SG_1_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "A1_LBLG_SG_2_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SA1P1_RBLG_SG_1_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SA1P1_LBLG_SG_2_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SP1P2_RBLG_SG_1_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SP1P2_LBLG_SG_2_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SP2P3_RBLG_SG_1_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SP2P3_LBLG_SG_2_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SP3P4_RBLG_SG_1_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SP3P4_LBLG_SG_2_Strain",
+        "A1_P4_Alert_Positive",
+        "A1_P4_Alert_Negative",
+        "A1_P4_Action_Positive",
+        "A1_P4_Action_Negative",
+        "A1_P4_Alarm_Positive",
+        "A1_P4_Alarm_Negative",
+    ],
+    [
+        "SP4P5_RBLG_SG_1_Strain",
+        "P4_P5_Alert_Positive",
+        "P4_P5_Alert_Negative",
+        "P4_P5_Action_Positive",
+        "P4_P5_Action_Negative",
+        "P4_P5_Alarm_Positive",
+        "P4_P5_Alarm_Negative",
+    ],
+    [
+        "SP4P5_LBLG_SG_2_Strain",
+        "P4_P5_Alert_Positive",
+        "P4_P5_Alert_Negative",
+        "P4_P5_Action_Positive",
+        "P4_P5_Action_Negative",
+        "P4_P5_Alarm_Positive",
+        "P4_P5_Alarm_Negative",
+    ],
+    [
+        "SP5CP1_RBLG_SG_1_Strain",
+        "P5_CP1_Alert_Positive",
+        "P5_CP1_Alert_Negative",
+        "P5_CP1_Action_Positive",
+        "P5_CP1_Action_Negative",
+        "P5_CP1_Alarm_Positive",
+        "P5_CP1_Alarm_Negative",
+    ],
+    [
+        "SP5CP1_LBLG_SG_2_Strain",
+        "P5_CP1_Alert_Positive",
+        "P5_CP1_Alert_Negative",
+        "P5_CP1_Action_Positive",
+        "P5_CP1_Action_Negative",
+        "P5_CP1_Alarm_Positive",
+        "P5_CP1_Alarm_Negative",
+    ], #dl 1 ends here. 
+    # dl 2 start 
+    [
+        "SP6P7_BS1L_HAJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1L_AAJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1L_HAJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1L_AAJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1L_AAJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1L_HAJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1L_BLBJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1L_HBLBJ_SG1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1L_BLBJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1L_HBLBJ_SG2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1L_BLBJ_SG3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS1L_HBLBJ_SG3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2R_HAJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2R_AAJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2R_HAJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2R_AAJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2R_AAJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2R_HAJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2R_BLBJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2R_HBLBJ_SG1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2R_BLBJ_SG_2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2R_HBLBJ_SG2_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2R_BLBJ_SG_3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP6P7_BS2R_HBLBJ_SG3_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "P7_BS1L_NJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "P7_BS1R_NJ_SG_4_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "P6_BS2L_NJ_SG_1_Strain",
+        "P6_P7_Alert_Positive",
+        "P6_P7_Alert_Negative",
+        "P6_P7_Action_Positive",
+        "P6_P7_Action_Negative",
+        "P6_P7_Alarm_Positive",
+        "P6_P7_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3R_AAJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3R_HAJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3R_AAJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3R_HAJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3R_AAJ_SG_1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3R_HAJ_SG_1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3R_HBLBJ_SG3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3R_BLBJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3R_HBLBJ_SG2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3R_BLBJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3R_HBLBJ_SG1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3R_BLBJ_SG_1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4L_AAJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4L_HAJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4L_AAJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4L_HAJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4L_AAJ_SG_1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4L_HAJ_SG_1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4L_HBLBJ_SG4_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4L_BLBJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4L_HBLBJ_SG3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4L_BLBJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4L_HBLBJ_SG2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4L_BLBJ_SG_1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4L_HBLBJ_SG1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "P7_BS3L_NJ_SG_1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "P7_BS3R_NJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "P7_BS4L_NJ_SG_1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "P7_BS4R_NJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "P6_BS2R_NJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    # dl 2 end
+    # dl 3 start
+    [
+        "SP7P8_BS3L_HAJ_SG_1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3L_AAJ_SG_1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3L_HAJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3L_AAJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3L_HAJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3L_AAJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3L_HBLBJ_SG1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3L_BLBJ_SG_1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3L_HBLBJ_SG2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3L_BLBJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3L_HBLBJ_SG3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS3L_BLBJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4R_HAJ_SG_1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4R_AAJ_SG_1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4R_HAJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4R_AAJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4R_HAJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4R_AAJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4R_HBLBJ_SG1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4R_BLBJ_SG_1_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4R_HBLBJ_SG2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4R_BLBJ_SG_2_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4R_HBLBJ_SG3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP7P8_BS4R_BLBJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "Additional_SG13_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "Additional_SG14_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "P8_BS4R_NJ_SG_4_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "P8_BS4L_NJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "P8_BS3R_NJ_SG_4_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "P8_BS3L_NJ_SG_3_Strain",
+        "P7_P8_Alert_Positive",
+        "P7_P8_Alert_Negative",
+        "P7_P8_Action_Positive",
+        "P7_P8_Action_Negative",
+        "P7_P8_Alarm_Positive",
+        "P7_P8_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5R_HAJ_SG_1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5R_AAJ_SG_1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5R_HAJ_SG_2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5R_AAJ_SG_2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5R_HAJ_SG_3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5R_AAJ_SG_3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5R_HBLBJSG1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5R_BLBJ_SG1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5R_HBLBJSG2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5R_BLBJ_SG2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5R_HBLBJSG3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5R_BLBJ_SG3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6L_HAJ_SG_1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6L_AAJ_SG_1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6L_HAJ_SG_2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6L_AAJ_SG_2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6L_HAJ_SG_3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6L_AAJ_SG_3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6L_HBLBJSG1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6L_BLBJ_SG1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6L_HBLBJSG2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6L_BLBJ_SG2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6L_HBLBJSG3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6L_BLBJ_SG3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "P9_BS6R_NJ_SG_2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "P9_BS6L_NJ_SG_1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "P9_BS5R_NJ_SG_2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "P9_BS5L_NJ_SG_1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    # dl 3 end 
+    # dl 4 start
+    [
+        "A2_RBLG_SG_1_Strain",
+        "P11-A2_Alert_Positive",
+        "P11-A2_Alert_Negative",
+        "P11-A2_Action_Positive",
+        "P11-A2_Action_Negative",
+        "P11-A2_Alarm_Positive",
+        "P11-A2_Alarm_Negative",
+    ],
+    [
+        "A2_LBLG_SG_2_Strain",
+        "P11-A2_Alert_Positive",
+        "P11-A2_Alert_Negative",
+        "P11-A2_Action_Positive",
+        "P11-A2_Action_Negative",
+        "P11-A2_Alarm_Positive",
+        "P11-A2_Alarm_Negative",
+    ],
+    [
+        "SP14A2_RBLG_SG_1_Strain",
+        "P11-A2_Alert_Positive",
+        "P11-A2_Alert_Negative",
+        "P11-A2_Action_Positive",
+        "P11-A2_Action_Negative",
+        "P11-A2_Alarm_Positive",
+        "P11-A2_Alarm_Negative",
+    ],
+    [
+        "SP14A2_LBLG_SG_2_Strain",
+        "P11-A2_Alert_Positive",
+        "P11-A2_Alert_Negative",
+        "P11-A2_Action_Positive",
+        "P11-A2_Action_Negative",
+        "P11-A2_Alarm_Positive",
+        "P11-A2_Alarm_Negative",
+    ],
+    [
+        "SP13P14_RBLG_SG_1_Strain",
+        "P11-A2_Alert_Positive",
+        "P11-A2_Alert_Negative",
+        "P11-A2_Action_Positive",
+        "P11-A2_Action_Negative",
+        "P11-A2_Alarm_Positive",
+        "P11-A2_Alarm_Negative",
+    ],
+    [
+        "SP13P14_LBLG_SG_2_Strain",
+        "P11-A2_Alert_Positive",
+        "P11-A2_Alert_Negative",
+        "P11-A2_Action_Positive",
+        "P11-A2_Action_Negative",
+        "P11-A2_Alarm_Positive",
+        "P11-A2_Alarm_Negative",
+    ],
+    [
+        "SP12P13_RBLG_SG_1_Strain",
+        "P11-A2_Alert_Positive",
+        "P11-A2_Alert_Negative",
+        "P11-A2_Action_Positive",
+        "P11-A2_Action_Negative",
+        "P11-A2_Alarm_Positive",
+        "P11-A2_Alarm_Negative",
+    ],
+    [
+        "SP12P13_LBLG_SG_2_Strain",
+        "P11-A2_Alert_Positive",
+        "P11-A2_Alert_Negative",
+        "P11-A2_Action_Positive",
+        "P11-A2_Action_Negative",
+        "P11-A2_Alarm_Positive",
+        "P11-A2_Alarm_Negative",
+    ],
+    [
+        "SP11P12_RBLG_SG_1_Strain",
+        "P11-A2_Alert_Positive",
+        "P11-A2_Alert_Negative",
+        "P11-A2_Action_Positive",
+        "P11-A2_Action_Negative",
+        "P11-A2_Alarm_Positive",
+        "P11-A2_Alarm_Negative",
+    ],
+    [
+        "SP11P12_LBLG_SG_2_Strain",
+        "P11-A2_Alert_Positive",
+        "P11-A2_Alert_Negative",
+        "P11-A2_Action_Positive",
+        "P11-A2_Action_Negative",
+        "P11-A2_Alarm_Positive",
+        "P11-A2_Alarm_Negative",
+    ],
+    [
+        "SP10P11_RBLG_SG_1_Strain",
+        "P10_P11_Alert_Positive",
+        "P10_P11_Alert_Negative",
+        "P10_P11_Action_Positive",
+        "P10_P11_Action_Negative",
+        "P10_P11_Alarm_Positive",
+        "P10_P11_Alarm_Negative",
+    ],
+    [
+        "SP10P11_LBLG_SG_2_Strain",
+        "P10_P11_Alert_Positive",
+        "P10_P11_Alert_Negative",
+        "P10_P11_Action_Positive",
+        "P10_P11_Action_Negative",
+        "P10_P11_Alarm_Positive",
+        "P10_P11_Alarm_Negative",
+    ],
+    [
+        "SCP2P10_RBLG_SG_1_Strain",
+        "P10_CP2_Threshold_Positive",
+        "P10_CP2_Threshold_Negative",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+    ],
+    [
+        "SCP2P10_LBLG_SG_2_Strain",
+        "P10_CP2_Threshold_Positive",
+        "P10_CP2_Threshold_Negative",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+    ],
+    [
+        "SP9CP2_BS5L_AAJ_SG1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5L_HAJ_SG1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5L_AAJ_SG2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5L_HAJ_SG2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5L_AAJ_SG3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5L_HAJ_SG3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5L_HBLBJSG1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5L_BLBJSG1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5L_HBLBJSG2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5L_BLBJSG2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5L_HBLBJSG3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS5L_BLBJSG3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6R_AAJ_SG1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6R_HAJ_SG_1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6R_AAJ_SG_2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6R_HAJ_SG_2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6R_AAJ_SG_3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6R_HAJ_SG_3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6R_HBLBJSG1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6R_BLBJSG1_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6R_HBLBJSG2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6R_BLBJSG2_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6R_HBLBJSG3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "SP9CP2_BS6R_BLBJSG3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "CP2_BS5L_NJ_SG_3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "CP2_BS5R_NJ_SG_4_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "CP2_BS6L_NJ_SG_3_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    [
+        "CP2_BS6R_NJ_SG_4_Strain",
+        "P9_CP2_Alert_Positive",
+        "P9_CP2_Alert_Negative",
+        "P9_CP2_Action_Positive",
+        "P9_CP2_Action_Negative",
+        "P9_CP2_Alarm_Positive",
+        "P9_CP2_Alarm_Negative",
+    ],
+    # dl 4 end
+    # dl 5 start
+    [
+        "A3_RBLG_SG_1_Strain",
+        "P19_A3_Alert_Positive",
+        "P19_A3_Alert_Negative",
+        "P19_A3_Action_Positive",
+        "P19_A3_Action_Negative",
+        "P19_A3_Alarm_Positive",
+        "P19_A3_Alarm_Negative",
+    ],
+    [
+        "A3_LBLG_SG_2_Strain",
+        "P19_A3_Alert_Positive",
+        "P19_A3_Alert_Negative",
+        "P19_A3_Action_Positive",
+        "P19_A3_Action_Negative",
+        "P19_A3_Alarm_Positive",
+        "P19_A3_Alarm_Negative",
+    ],
+    [
+        "SP21A3_RBLG_SG_1_Strain",
+        "P19_A3_Alert_Positive",
+        "P19_A3_Alert_Negative",
+        "P19_A3_Action_Positive",
+        "P19_A3_Action_Negative",
+        "P19_A3_Alarm_Positive",
+        "P19_A3_Alarm_Negative",
+    ],
+    [
+        "SP21A3_LBLG_SG_2_Strain",
+        "P19_A3_Alert_Positive",
+        "P19_A3_Alert_Negative",
+        "P19_A3_Action_Positive",
+        "P19_A3_Action_Negative",
+        "P19_A3_Alarm_Positive",
+        "P19_A3_Alarm_Negative",
+    ],
+    [
+        "SP20P21_RBLG_SG_1_Strain",
+        "P19_A3_Alert_Positive",
+        "P19_A3_Alert_Negative",
+        "P19_A3_Action_Positive",
+        "P19_A3_Action_Negative",
+        "P19_A3_Alarm_Positive",
+        "P19_A3_Alarm_Negative",
+    ],
+    [
+        "SP20P21_LBLG_SG_2_Strain",
+        "P19_A3_Alert_Positive",
+        "P19_A3_Alert_Negative",
+        "P19_A3_Action_Positive",
+        "P19_A3_Action_Negative",
+        "P19_A3_Alarm_Positive",
+        "P19_A3_Alarm_Negative",
+    ],
+    [
+        "SP19P20_RBLG_SG_1_Strain",
+        "P19_A3_Alert_Positive",
+        "P19_A3_Alert_Negative",
+        "P19_A3_Action_Positive",
+        "P19_A3_Action_Negative",
+        "P19_A3_Alarm_Positive",
+        "P19_A3_Alarm_Negative",
+    ],
+    [
+        "SP19P20_LBLG_SG_2_Strain",
+        "P19_A3_Alert_Positive",
+        "P19_A3_Alert_Negative",
+        "P19_A3_Action_Positive",
+        "P19_A3_Action_Negative",
+        "P19_A3_Alarm_Positive",
+        "P19_A3_Alarm_Negative",
+    ],
+    [
+        "SP18P19_RBLG_SG_1_Strain",
+        "P18_P19_Alert_Positive",
+        "P18_P19_Alert_Negative",
+        "P18_P19_Action_Positive",
+        "P18_P19_Action_Negative",
+        "P18_P19_Alarm_Positive",
+        "P18_P19_Alarm_Negative",
+    ],
+    [
+        "SP18P19_LBLG_SG_2_Strain",
+        "P18_P19_Alert_Positive",
+        "P18_P19_Alert_Negative",
+        "P18_P19_Action_Positive",
+        "P18_P19_Action_Negative",
+        "P18_P19_Alarm_Positive",
+        "P18_P19_Alarm_Negative",
+    ],
+    [
+        "SP17P18_RBLG_SG_1_Strain",
+        "P17_P18_Alert_Positive",
+        "P17_P18_Alert_Negative",
+        "P17_P18_Action_Positive",
+        "P17_P18_Action_Negative",
+        "P17_P18_Alarm_Positive",
+        "P17_P18_Alarm_Negative",
+    ],
+    [
+        "SP17P18_LBLG_SG_2_Strain",
+        "P17_P18_Alert_Positive",
+        "P17_P18_Alert_Negative",
+        "P17_P18_Action_Positive",
+        "P17_P18_Action_Negative",
+        "P17_P18_Alarm_Positive",
+        "P17_P18_Alarm_Negative",
+    ],
+    [
+        "SP16P17_RBLG_SG_1_Strain",
+        "P16_P17_Alert_Positive",
+        "P16_P17_Alert_Negative",
+        "P16_P17_Action_Positive",
+        "P16_P17_Action_Negative",
+        "P16_P17_Alarm_Negative",
+        "P16_P17_Alarm_Positive",
+    ],
+    [
+        "SP16P17_LBLG_SG_2_Strain",
+        "P16_P17_Alert_Positive",
+        "P16_P17_Alert_Negative",
+        "P16_P17_Action_Positive",
+        "P16_P17_Action_Negative",
+        "P16_P17_Alarm_Negative",
+        "P16_P17_Alarm_Positive",
+    ]
+    # dl 5 end
+]
+## END - STRAIN CHART
+
+################ END - GLOBAL COLUMN NAME DEFINED ################
+
 ################ START - SAVE THE LINE CHART ################
-
-# Directory to save the generated charts
-chart_directory = "application/static/charts/"
-
-# Check if the chart directory exists and contains files
-if os.path.exists(chart_directory) and os.listdir(chart_directory):
-    # Clear the chart directory
-    for filename in os.listdir(chart_directory):
-        file_path = os.path.join(chart_directory, filename)
-        os.unlink(file_path)
-
-
-
 # Define the desired lower and upper limits of the y-axis
 lower_limit = -50
 upper_limit = 50
@@ -99,9 +2228,14 @@ tick_spacing = 5
 
 # Calculate the tick positions based on the desired tick spacing
 tick_positions = np.arange(lower_limit, upper_limit+1, tick_spacing)
-
-plt.style.use('seaborn-whitegrid')
 ################ END - SAVE THE LINE CHART ################
+
+
+# Function to generate a random ID
+def generate_random_id():
+    length = 8
+    characters = string.ascii_letters + string.digits
+    return ''.join(random.choice(characters) for i in range(length))
 
 
 @main.route("/")
@@ -303,104 +2437,6 @@ def home():
         laser_datas.append(row_results)
 
 
-
-    # --------------------------------------- #
-    # -- SHOWING LINE CHART OF Laser Data --- #
-    # --------------------------------------- #
-    # Iterate over the Deflection columns
-    for i in range(1, 6):
-        deflection_column = f"Deflection_{i}"
-        threshold_column = f"Threshold_LS{i}_Action"
-
-        # Create a new figure and axis for each chart
-        fig, ax = plt.subplots(figsize=(12, 6))
-
-        # Plot the Deflection and Threshold lines
-        ax.plot(laser_df['DateTime'], laser_df[deflection_column], label=f'{deflection_column} (Deflection)')
-        ax.plot(laser_df['DateTime'], laser_df[threshold_column], label=f'{threshold_column} (Threshold)')
-
-        # Set labels and title
-        ax.set_xlabel('DateTime')
-        ax.set_ylabel('Value')
-        ax.set_title(f'Laser Chart {i}')
-    
-        # Rotate and align the datetime labels
-        ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
-        plt.xticks(rotation=17, ha='right')
-    
-        # Set custom y-axis limits
-        ax.set_ylim(lower_limit, upper_limit)
-
-        # Set custom y-axis tick positions and labels
-        ax.set_yticks(tick_positions)
-        ax.set_yticklabels(tick_positions)
-
-        # Add legend
-        ax.legend()
-
-        # Save the chart as an image file
-        laser_chart_filename = f"laser_chart_{i}.png"
-        laser_chart_filepath = os.path.join(chart_directory, laser_chart_filename)
-        plt.savefig(laser_chart_filepath, bbox_inches='tight')
-        plt.close()
-
-    ########## END Laser Data ##########
-
-
-    # ########## START Temperature Meter Data ##########
-    # accelerometers_csv_files = accelerometers_csv
-    # # laser_df = pd.read_csv(laser_csv_file, skiprows=3)
-    # # laser_df.columns = laser_df.columns.str.strip()
-    # # Iterate over each CSV file
-    # for accelerometers_csv_file in accelerometers_csv_files:
-    #     # Read the CSV file into a DataFrame
-    #     accelerometers_df = pd.read_csv(accelerometers_csv_file, skiprows=3)
-    #     accelerometers_df.columns = accelerometers_df.columns.str.strip()
-
-
-    #     # Get the column names excluding the "DateTime" column
-    #     columns = accelerometers_df.columns[1:]
-    #     print('---- columns ------')
-    #     print(columns)
-
-    #     # Iterate over each column
-    #     for column in columns:
-    #         print(f'--> column: {column}')
-    #         # Create a new figure and axis for each chart
-    #         fig, ax = plt.subplots(figsize=(12, 6))
-
-    #         # Plot the line for the current column
-    #         ax.plot(accelerometers_df['DateTime'], accelerometers_df[column])
-
-    #         # Set labels and title
-    #         ax.set_xlabel('DateTime')
-    #         ax.set_ylabel(column)
-    #         ax.set_title(f'Accelerometers Chart - {column}')
-
-    #         # Rotate and align the datetime labels
-    #         # ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-    #         # ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
-    #         # plt.xticks(rotation=17, ha='right')
-
-    #         # Set custom y-axis limits
-    #         # ax.set_ylim(lower_limit, upper_limit)
-
-    #         # Set custom y-axis tick positions and labels
-    #         # ax.set_yticks(tick_positions)
-    #         # ax.set_yticklabels(tick_positions)
-
-    #         # Add legend
-    #         ax.legend()
-
-    #         # Save the chart as an image file
-    #         accelerometer_chart_filename = f"accelerometers_chart_{i}.png"
-    #         accelerometer_chart_filepath = os.path.join(chart_directory, accelerometer_chart_filename)
-    #         plt.savefig(accelerometer_chart_filepath, bbox_inches='tight')
-    #         plt.close()
-    # ########## END Temperature Meter Data ##########
-
-
     ########## START Temperature Meter Data ##########
 
     # --------------------------------------- #
@@ -410,8 +2446,6 @@ def home():
     temprature_meter_csv_files = [
         dl[1],
         dl[3]
-        # "Tallah_ROB_P6_P8_DL2-DataList23Jun23.csv",
-        # "Tallah_ROB_P9_A2_DL4-DataList23Jun23.csv"
     ]
 
     # Define the columns for analysis
@@ -466,8 +2500,6 @@ def home():
     tilt_meter_csv_files = [
         dl[0],
         dl[3]
-        # "Tallah_ROB_A1_P7_DL1-DataList23Jun23.csv",
-        # "Tallah_ROB_P9_A2_DL4-DataList23Jun23.csv"
     ]
 
     # Define the columns for analysis
@@ -486,6 +2518,7 @@ def home():
         "Average": [],
         "Standard Deviation": []
     }
+
     # Iterate over each CSV file
     for tilt_meter_csv_file in tilt_meter_csv_files:
         # Read the CSV file into a DataFrame
@@ -524,12 +2557,7 @@ def home():
         dl[1],
         dl[2],
         dl[3],
-        dl[4],
-        # "Tallah_ROB_A1_P7_DL1-DataList23Jun23.csv",
-        # "Tallah_ROB_P6_P8_DL2-DataList23Jun23.csv",
-        # "Tallah_ROB_P7_CP2_DL3-DataList23Jun23.csv",
-        # "Tallah_ROB_P9_A2_DL4-DataList23Jun23.csv",
-        # "Tallah_ROB_P16_A3_DL5-DataList23Jun23.csv"
+        dl[4]
     ]
 
     # Define Threshold value for LVDT
@@ -635,241 +2663,6 @@ def home():
     ldvt_datas = pd.DataFrame(ldvt_statistics)
 
 
-
-
-    # --------------------------------------- #
-    # -- SHOWING LINE CHART OF Laser Data --- #
-    # --------------------------------------- #
-    chart_columns = [
-        ['P6_BS1_LGS_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
-        ['P6_BS2_LGS_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
-        ['P6_BS1_FF_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
-        ['P6_BS2_FF_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
-        ['P7_BS1_TGS_Displacement', 'P7_TGS_Alert_Positive', 'P7_TGS_Alert_Negative', 'P7_TGS_Action_Positive', 'P7_TGS_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
-        ['P7_BS1_FX_Displacement', 'P7_FX_Alert_Positive', 'P7_FX_Alert_Negative', 'P7_FX_Action_Positive', 'P7_FX_Action_Negative', 'P7_FX_Alarm_Positive', 'P7_FX_Alarm_Negative'],
-        ['P7_BS2_FX_Displacement', 'P7_FX_Alert_Positive', 'P7_FX_Alert_Negative', 'P7_FX_Action_Positive', 'P7_FX_Action_Negative', 'P7_FX_Alarm_Positive', 'P7_FX_Alarm_Negative'],
-        ['P7_P8_BS3_FF_Displacement', 'P7_P8_BS3_BS4_Alert_Positive', 'P7_P8_BS4_Alert_Negative', 'P7_P8_BS4_Action_Positive', 'P7_P8_BS4_Action_Negative', 'P7_P8_BS4_Alarm_Positive', 'P7_P8_BS4_Alarm_Negative'],
-        ['P7_P8_BS3_LGS_Displacement', 'P7_P8_BS3_BS4_Alert_Positive', 'P7_P8_BS4_Alert_Negative', 'P7_P8_BS4_Action_Positive', 'P7_P8_BS4_Action_Negative', 'P7_P8_BS4_Alarm_Positive', 'P7_P8_BS4_Alarm_Negative'],
-        ['P7_P8_BS4_LGS_Displacement', 'P7_P8_BS3_BS4_Alert_Positive', 'P7_P8_BS4_Alert_Negative', 'P7_P8_BS4_Action_Positive', 'P7_P8_BS4_Action_Negative', 'P7_P8_BS4_Alarm_Positive', 'P7_P8_BS4_Alarm_Negative'],
-        ['P7_BS2_TGS_Displacement', 'P7_TGS_Alert_Positive', 'P7_TGS_Alert_Negative', 'P7_TGS_Action_Positive', 'P7_TGS_Action_Negative', 'P7_TGS_Alarm_Positive', 'P7_TGS_Alarm_Negative'],
-        ['P8_D1_Displacement', 'TGS_Alert_Positive', 'TGS_Alert_Negative', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
-        ['P8_D2_Displacement', 'P8_D2_D3_Alert_Positive', 'P8_D2_D3_Alert_Negative', 'P8_D2_D3_Action_Positive', 'P8_D2_D3_Action_Negative', 'P8_D2_D3_Alarm_Positive', 'P8_D2_D3_Alarm_Negative'],
-        ['P8_D3_Displacement', 'P8_D2_D3_Alert_Positive', 'P8_D2_D3_Alert_Negative', 'P8_D2_D3_Action_Positive', 'P8_D2_D3_Action_Negative', 'P8_D2_D3_Alarm_Positive', 'P8_D2_D3_Alarm_Negative'],
-        ['P8_D4_Displacement', 'TGS_Alert_Positive', 'TGS_Alert_Negative', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
-        ['P9_D1_Displacement', 'FF_Alert_Positive', 'FF_Alert_Negative', 'FF_Action_Positive', 'FF_Action_Negative', 'FF_Alarm_Positive', 'FF_Alarm_Negative'],
-        ['P9_D2_Displacement', 'LGS_Alert_Positive', 'LGS_Alert_Negative', 'LGS_Action_Positive', 'LGS_Action_Negative', 'LGS_Alarm_Positive', 'LGS_Alarm_Negative'],
-        ['P9_D3_Displacement', 'LGS_Alert_Positive', 'LGS_Alert_Negative', 'LGS_Action_Positive', 'LGS_Action_Negative', 'LGS_Alarm_Positive', 'LGS_Alarm_Negative'],
-        ['P9_D4_Displacement', 'FF_Alert_Positive', 'FF_Alert_Negative', 'FF_Action_Positive', 'FF_Action_Negative', 'FF_Alarm_Positive', 'FF_Alarm_Negative'],
-        ['P12_D1_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
-        ['P12_D2_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
-        ['P12_D3_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
-        ['P12_D4_Displacement', 'P11_P12_D4_D5_Alert_Positive', 'P11_P12_D4_D5_Alert_Negative', 'P11_P12_D4_D5_Action_Positive', 'P11_P12_D4_D5_Action_Negative', 'P11_P12_D4_D5_Alarm_Positive', 'P11_P12_D4_D5_Alarm_Negative'],
-        ['P12_D5_Displacement', 'P11_P12_D4_D5_Alert_Positive', 'P11_P12_D4_D5_Alert_Negative', 'P11_P12_D4_D5_Action_Positive', 'P11_P12_D4_D5_Action_Negative', 'P11_P12_D4_D5_Alarm_Positive', 'P11_P12_D4_D5_Alarm_Negative'],
-        ['P12_D6_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
-        ['P12_D7_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
-        ['P12_D8_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
-        ['P11_D1_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
-        ['P11_D2_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
-        ['P11_D3_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
-        ['P11_D4_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
-        ['P11_D5_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
-        ['P11_D6_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
-        ['P11_D7_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
-        ['P11_D8_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
-        ['CP2_BS5_TGS_D_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
-        ['CP2_BS5_FX_D_Displacement', 'FX_Alert_Negative', 'FX_Alert_Positive', 'FX_Action_Positive', 'FX_Action_Negative', 'FX_Alarm_Positive', 'FX_Alarm_Negative'],
-        ['CP_BS6_FX_D_Displacement', 'FX_Alert_Negative', 'FX_Alert_Positive', 'FX_Action_Positive', 'FX_Action_Negative', 'FX_Alarm_Positive', 'FX_Alarm_Negative'],
-        ['CP2_BS6_TGS_D_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
-        ['P18_D1_Displacement', 'FF_Alert_Negative', 'FF_Alert_Positive', 'FF_Action_Positive', 'FF_Action_Negative', 'FF_Alarm_Positive', 'FF_Alarm_Negative'],
-        ['P18_D2_Displacement', 'LGS_Alert_Negative', 'LGS_Alert_Positive', 'LGS_Action_Positive', 'LGS_Action_Negative', 'LGS_Alarm_Positive', 'LGS_Alarm_Negative'],
-        ['P18_D3_Displacement', 'LGS_Alert_Negative', 'LGS_Alert_Positive', 'LGS_Action_Positive', 'LGS_Action_Negative', 'LGS_Alarm_Positive', 'LGS_Alarm_Negative'],
-        ['P18_D4_Displacement', 'FF_Alert_Negative', 'FF_Alert_Positive', 'FF_Action_Positive', 'FF_Action_Negative', 'FF_Alarm_Positive', 'FF_Alarm_Negative'],
-        ['P17_D1_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
-        ['P17_D2_Displacement', 'P17_D3_D2_Alert_Negative', 'P17_D3_D2_Alert_Positive', 'P17_D3_D2_Action_Positive', 'P17_D3_D2_Action_Negative', 'P17_D3_D2_Alarm_Positive', 'P17_D3_D2_Alarm_Negative'],
-        ['P17_D3_Displacement', 'P17_D3_D2_Alert_Negative', 'P17_D3_D2_Alert_Positive', 'P17_D3_D2_Action_Positive', 'P17_D3_D2_Action_Negative', 'P17_D3_D2_Alarm_Positive', 'P17_D3_D2_Alarm_Negative'],
-        ['P17_D4_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'P17_D3_D2_Action_Positive', 'P17_D3_D2_Action_Negative', 'P17_D3_D2_Alarm_Positive', 'P17_D3_D2_Alarm_Negative']
-    ]
-
-    # Iterate over each CSV file
-    for dl_csv_file in dl:
-        # Read the CSV file into a DataFrame
-        df = pd.read_csv(dl_csv_file, skiprows=3)
-        df.columns = df.columns.str.strip()
-
-        for i, columns in enumerate(chart_columns):
-            # Create a new figure and axis for each chart
-            fig, ax = plt.subplots(figsize=(12, 6))
-
-            # print('--- list of all column ------')
-            # # print(column in df.columns for column in columns)
-            # if all(column in df.columns for column in columns):
-            #     print(f'Column found: {columns}')
-            # else:
-            #     print(f'Column not found: {columns}')
-            # print('----- end of all column ----')
-
-            # Check if all required columns exist in the DataFrame
-            if all(column in df.columns for column in columns):
-                for column in columns:
-                    # Plot the data
-                    ax.plot(df['DateTime'], df[column], label=column)
-
-                # Set labels and title
-                ax.set_xlabel('DateTime')
-                ax.set_ylabel('Value')
-                ax.set_title(f'Chart {i+1}')
-
-                # Rotate and align the datetime labels
-                ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-                ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
-                plt.xticks(rotation=17, ha='right')
-
-                # Customize other chart properties as needed
-
-                # Add legend
-                ax.legend()
-
-                # Save the chart as an image file
-                chart_filename = f"strain_gauges_chart_{i+1}.png"
-                chart_filepath = os.path.join(chart_directory, chart_filename)
-                plt.savefig(chart_filepath, bbox_inches='tight')
-                plt.close()
-            else:
-                print(f"Required columns not found in {dl_csv_file}. Skipping chart {i+1}.")
-
-
-
-
-
-    # df = pd.read_csv(ldvt_csv_files[0], skiprows=3)
-    # df.columns = df.columns.str.strip()
-
-    # chart_types = ['P3', 'P4']
-    # columns = [
-    #     'Displacement', 
-    #     'D1_D8_Alert_Positive', 
-    #     'D1_D8_Alert_Negative', 
-    #     'D1_D8_Action_Positive', 
-    #     'D1_D8_Action_Negative', 
-    #     'D1_D8_Alarm_Positive', 
-    #     'D1_D8_Alarm_Negative'
-    # ]
-
-    # for chart_type in chart_types:
-    #     for i in range(1, 8):
-    #         # Create a new figure and axis for each chart
-    #         fig, ax = plt.subplots(figsize=(12, 6))
-
-    #         # Set the displacement column name dynamically
-    #         displacement_column = f"{chart_type}_D{i}_Displacement"
-
-    #         # Plot the displacement data
-    #         ax.plot(df['DateTime'], df[displacement_column], color='b', label=displacement_column)
-
-    #         # Iterate over the remaining columns
-    #         for column in columns[1:]:
-    #             # Set the column name dynamically
-    #             chart_column = f"{chart_type}_{column}"
-
-    #             # Plot the data
-    #             ax.plot(df['DateTime'], df[chart_column], label=chart_column)
-
-    #         # Set labels and title
-    #         ax.set_xlabel('DateTime')
-    #         ax.set_ylabel('Value')
-    #         ax.set_title(f'{chart_type} Chart {i}')
-
-    #         # Rotate and align the datetime labels
-    #         ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-    #         ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
-    #         plt.xticks(rotation=17, ha='right')
-
-    #         # Customize other chart properties as needed
-
-    #         # Add legend
-    #         ax.legend()
-
-    #         # Save the chart as an image file
-    #         chart_filename = f"{chart_type.lower()}_chart_{i}.png"
-    #         chart_filepath = os.path.join(chart_directory, chart_filename)
-    #         plt.savefig(chart_filepath, bbox_inches='tight')
-    #         plt.close()
-
-
-    # Iterate over the Deflection columns
-    # for i in range(1, 8):
-    #     # Create a new figure and axis for each chart
-    #     fig, ax = plt.subplots(figsize=(12, 6))
-
-    #     # ========= START P3 ========= 
-    #     #   P3 CHARTS FOR D1 TO D7
-    #     p3_displacement_column = f"P3_D{i}_Displacement"
-    #     P3_D1_D8_Alert_Positive_column = "P3_D1_D8_Alert_Positive"
-    #     P3_D1_D8_Alert_Negative_column = "P3_D1_D8_Alert_Negative"
-    #     P3_D1_D8_Action_Positive_column = "P3_D1_D8_Action_Positive"
-    #     P3_D1_D8_Action_Negative_column = "P3_D1_D8_Action_Negative"
-    #     P3_D1_D8_Alarm_Positive_column = "P3_D1_D8_Alarm_Positive"
-    #     P3_D1_D8_Alarm_Negative_column = "P3_D1_D8_Alarm_Negative"
-
-    #     # P3 Plot the Deflection and Threshold lines
-    #     ax.plot(df['DateTime'], df[p3_displacement_column], color='b', label=f'P3_D{i}_Displacement')
-    #     ax.plot(df['DateTime'], df[P3_D1_D8_Alert_Positive_column], color='g', label='P3_D1_D8_Alert_Positive')
-    #     ax.plot(df['DateTime'], df[P3_D1_D8_Alert_Negative_column], color='g', label='P3_D1_D8_Alert_Negative')
-    #     ax.plot(df['DateTime'], df[P3_D1_D8_Action_Positive_column], color='y', label='P3_D1_D8_Action_Positive')
-    #     ax.plot(df['DateTime'], df[P3_D1_D8_Action_Negative_column], color='y', label='P3_D1_D8_Action_Negative')
-    #     ax.plot(df['DateTime'], df[P3_D1_D8_Alarm_Positive_column], color='r', label='P3_D1_D8_Alarm_Positive')
-    #     ax.plot(df['DateTime'], df[P3_D1_D8_Alarm_Negative_column], color='r', label='P3_D1_D8_Alarm_Negative') 
-    #     # ========= END P3 =========
-
-    #     # ========= START P4 ========= 
-    #     #   P3 CHARTS FOR D1 TO D7
-    #     p4_displacement_column = f"P4_D{i}_Displacement"
-    #     P4_D1_D8_Alert_Positive_column = "P4_D1_D8_Alert_Positive"
-    #     P4_D1_D8_Alert_Negative_column = "P4_D1_D8_Alert_Negative"
-    #     P4_D1_D8_Action_Positive_column = "P4_D1_D8_Action_Positive"
-    #     P4_D1_D8_Action_Negative_column = "P4_D1_D8_Action_Negative"
-    #     P4_D1_D8_Alarm_Positive_column = "P4_D1_D8_Alarm_Positive"
-    #     P4_D1_D8_Alarm_Negative_column = "P4_D1_D8_Alarm_Negative"
-
-    #     # P4 Plot the Deflection and Threshold lines
-    #     ax.plot(df['DateTime'], df[p4_displacement_column], color='b', label=f'P4_D{i}_Displacement')
-    #     ax.plot(df['DateTime'], df[P4_D1_D8_Alert_Positive_column], color='g', label='P4_D1_D8_Alert_Positive')
-    #     ax.plot(df['DateTime'], df[P4_D1_D8_Alert_Negative_column], color='g', label='P4_D1_D8_Alert_Negative')
-    #     ax.plot(df['DateTime'], df[P4_D1_D8_Action_Positive_column], color='y', label='P4_D1_D8_Action_Positive')
-    #     ax.plot(df['DateTime'], df[P4_D1_D8_Action_Negative_column], color='y', label='P4_D1_D8_Action_Negative')
-    #     ax.plot(df['DateTime'], df[P4_D1_D8_Alarm_Positive_column], color='r', label='P4_D1_D8_Alarm_Positive')
-    #     ax.plot(df['DateTime'], df[P4_D1_D8_Alarm_Negative_column], color='r', label='P4_D1_D8_Alarm_Negative') 
-    #     # ========= END P4 =========
-
-    #     # Set labels and title
-    #     ax.set_xlabel('DateTime')
-    #     ax.set_ylabel('Value')
-    #     ax.set_title(f'LVDT Chart {i}')
-
-    #     # Rotate and align the datetime labels
-    #     ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-    #     ax.xaxis.set_major_formatter(mdates.DateFormatter('%d-%m-%Y %H:%M:%S'))
-    #     plt.xticks(rotation=17, ha='right')
-    
-    #     # Set custom y-axis limits
-    #     ax.set_ylim(lower_limit, upper_limit)
-
-    #     # Set custom y-axis tick positions and labels
-    #     ax.set_yticks(tick_positions)
-    #     ax.set_yticklabels(tick_positions)
-
-    #     # Add legend
-    #     ax.legend()
-
-    #     # Save the chart as an image file
-    #     laser_chart_filename = f"lvdt_p3_chart_{i}.png"
-    #     laser_chart_filepath = os.path.join(chart_directory, laser_chart_filename)
-    #     plt.savefig(laser_chart_filepath, bbox_inches='tight')
-    #     plt.close()
-
-    ########## END LDVT Data ##########
-
-
     ########## START Strain Gauges Data ##########
 
     # --------------------------------------- #
@@ -879,29 +2672,11 @@ def home():
     # --------------------------------------- #
     shayam_bazar_viaduct_csv_files = [
         dl[0]
-        # "Tallah_ROB_A1_P7_DL1-DataList23Jun23.csv"
     ]
 
-    # Define the columns for analysis
-    shayam_bazar_viaduct_RHS_columns = [
-        "A1_RBLG_SG_1_Strain",
-        "SA1P1_RBLG_SG_1_Strain",
-        "SP1P2_RBLG_SG_1_Strain",
-        "SP2P3_RBLG_SG_1_Strain",
-        "SP3P4_RBLG_SG_1_Strain",
-        "SP4P5_RBLG_SG_1_Strain",
-        "SP5CP1_RBLG_SG_1_Strain"
-    ]
-
-    shayam_bazar_viaduct_LHS_columns = [
-        "A1_LBLG_SG_2_Strain",
-        "SA1P1_LBLG_SG_2_Strain",
-        "SP1P2_LBLG_SG_2_Strain",
-        "SP2P3_LBLG_SG_2_Strain",
-        "SP3P4_LBLG_SG_2_Strain",
-        "SP4P5_LBLG_SG_2_Strain",
-        "SP5CP1_LBLG_SG_2_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     shayam_bazar_viaduct_RHS_statistics = {
@@ -972,41 +2747,11 @@ def home():
     P6_P7_BS1_csv_files  = [
         dl[0],
         dl[1]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_A1_P7_DL1-DataList.csv",
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P6_P8_DL2-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    P6_P7_BS1_LHS_columns = [
-        "SP6P7_BS1R_HAJ_SG_1_Strain",
-        "SP6P7_BS1R_HAJ_SG_2_Strain",
-        "SP6P7_BS1R_HAJ_SG_3_Strain",
-        "SP6P7_BS1R_AAJ_SG_1_Strain",
-        "SP6P7_BS1R_AAJ_SG_2_Strain",
-        "SP6P7_BS1R_AAJ_SG_3_Strain",
-        "SP6P7_BS1R_HBLBJ_SG1_Strain",
-        "SP6P7_BS1R_HBLBJ_SG2_Strain",
-        "SP6P7_BS1R_HBLBJ_SG3_Strain",
-        "SP6P7_BS1R_BLBJ_SG_1_Strain",
-        "SP6P7_BS1R_BLBJ_SG_2_Strain",
-        "SP6P7_BS1R_BLBJ_SG_3_Strain",
-        "SP6P7_BS1L_HAJ_SG_1_Strain",
-        "SP6P7_BS1L_HAJ_SG_2_Strain",
-        "SP6P7_BS1L_HAJ_SG_3_Strain",
-        "SP6P7_BS1L_AAJ_SG_1_Strain",
-        "SP6P7_BS1L_AAJ_SG_2_Strain",
-        "SP6P7_BS1L_AAJ_SG_3_Strain",
-        "SP6P7_BS1L_HBLBJ_SG1_Strain",
-        "SP6P7_BS1L_HBLBJ_SG2_Strain",
-        "SP6P7_BS1L_HBLBJ_SG3_Strain",
-        "SP6P7_BS1L_BLBJ_SG_1_Strain",
-        "SP6P7_BS1L_BLBJ_SG_2_Strain",
-        "SP6P7_BS1L_BLBJ_SG3_Strain",
-        "P6_BS1L_NJ_SG_1_Strain",
-        "P6_BS1R_NJ_SG_2_Strain",
-        "P7_BS1L_NJ_SG_3_Strain",
-        "P7_BS1R_NJ_SG_4_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     P6_P7_BS1_LHS_statistics = {
         "Instrument Tag No.": [],
@@ -1050,40 +2795,11 @@ def home():
     P6_P7_BS3_csv_files = [
         dl[1],
         dl[2]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P6_P8_DL2-DataList.csv",
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P7_CP2_DL3-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    P6_P7_BS3_LHS_columns = [
-        "SP7P8_BS3R_HAJ_SG_1_Strain",
-        "SP7P8_BS3R_HAJ_SG_2_Strain",
-        "SP7P8_BS3R_HAJ_SG_3_Strain",
-        "SP7P8_BS3R_AAJ_SG_1_Strain",
-        "SP7P8_BS3R_AAJ_SG_2_Strain",
-        "SP7P8_BS3R_AAJ_SG_3_Strain",
-        "SP7P8_BS3R_HBLBJ_SG1_Strain",
-        "SP7P8_BS3R_HBLBJ_SG2_Strain",
-        "SP7P8_BS3R_HBLBJ_SG3_Strain",
-        "SP7P8_BS3R_BLBJ_SG_1_Strain",
-        "SP7P8_BS3R_BLBJ_SG_2_Strain",
-        "SP7P8_BS3R_BLBJ_SG_3_Strain",
-        "SP7P8_BS3L_HAJ_SG_1_Strain",
-        "SP7P8_BS3L_HAJ_SG_2_Strain",
-        "SP7P8_BS3L_HAJ_SG_3_Strain",
-        "SP7P8_BS3L_AAJ_SG_1_Strain",
-        "SP7P8_BS3L_AAJ_SG_2_Strain",
-        "SP7P8_BS3L_AAJ_SG_3_Strain",
-        "SP7P8_BS3L_HBLBJ_SG1_Strain",
-        "SP7P8_BS3L_HBLBJ_SG2_Strain",
-        "SP7P8_BS3L_HBLBJ_SG3_Strain",
-        "SP7P8_BS3L_BLBJ_SG_1_Strain",
-        "SP7P8_BS3L_BLBJ_SG_2_Strain",
-        "SP7P8_BS3L_BLBJ_SG_3_Strain",
-        "P7_BS3L_NJ_SG_1_Strain",
-        "P7_BS3R_NJ_SG_2_Strain",
-        "P8_BS3L_NJ_SG_3_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     P6_P7_BS3_LHS_statistics = {
@@ -1129,41 +2845,11 @@ def home():
     P6_P7_BS5_csv_files = [
         dl[2],
         dl[3]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P7_CP2_DL3-DataList.csv",
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P9_A2_DL4-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    P6_P7_BS5_LHS_columns = [
-        "SP9CP2_BS5R_HAJ_SG_1_Strain",
-        "SP9CP2_BS5R_HAJ_SG_2_Strain",
-        "SP9CP2_BS5R_HAJ_SG_3_Strain",
-        "SP9CP2_BS5R_AAJ_SG_1_Strain",
-        "SP9CP2_BS5R_AAJ_SG_2_Strain",
-        "SP9CP2_BS5R_AAJ_SG_3_Strain",
-        "SP9CP2_BS5R_HBLBJSG1_Strain",
-        "SP9CP2_BS5R_HBLBJSG2_Strain",
-        "SP9CP2_BS5R_HBLBJSG3_Strain",
-        "SP9CP2_BS5R_BLBJ_SG1_Strain",
-        "SP9CP2_BS5R_BLBJ_SG2_Strain",
-        "SP9CP2_BS5R_BLBJ_SG3_Strain",
-        "SP9CP2_BS5L_HAJ_SG1_Strain",
-        "SP9CP2_BS5L_HAJ_SG2_Strain",
-        "SP9CP2_BS5L_HAJ_SG3_Strain",
-        "SP9CP2_BS5L_AAJ_SG1_Strain",
-        "SP9CP2_BS5L_AAJ_SG2_Strain",
-        "SP9CP2_BS5L_AAJ_SG3_Strain",
-        "SP9CP2_BS5L_HBLBJSG1_Strain",
-        "SP9CP2_BS5L_HBLBJSG2_Strain",
-        "SP9CP2_BS5L_HBLBJSG3_Strain",
-        "SP9CP2_BS5L_BLBJSG1_Strain",
-        "SP9CP2_BS5L_BLBJSG2_Strain",
-        "SP9CP2_BS5L_BLBJSG3_Strain",
-        "P9_BS5L_NJ_SG_1_Strain",
-        "P9_BS5R_NJ_SG_2_Strain",
-        "CP2_BS5L_NJ_SG_3_Strain",
-        "CP2_BS5R_NJ_SG_4_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     P6_P7_BS5_LHS_statistics = {
@@ -1209,41 +2895,11 @@ def home():
     P6_P7_BS2_csv_files = [
         dl[0],
         dl[1]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_A1_P7_DL1-DataList.csv",
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P6_P8_DL2-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    P6_P7_BS2_RHS_columns = [
-        "SP6P7_BS2L_HAJ_SG_1_Strain",
-        "SP6P7_BS2L_HAJ_SG_2_Strain",
-        "SP6P7_BS2L_HAJ_SG_3_Strain",
-        "SP6P7_BS2L_AAJ_SG_1_Strain",
-        "SP6P7_BS2L_AAJ_SG_2_Strain",
-        "SP6P7_BS2L_AAJ_SG_3_Strain",
-        "SP6P7_BS2L_HBLBJ_SG1_Strain",
-        "SP6P7_BS2L_HBLBJ_SG2_Strain",
-        "SP6P7_BS2L_HBLBJ_SG3_Strain",
-        "SP6P7_BS2L_BLBJ_SG_1_Strain",
-        "SP6P7_BS2L_BLBJ_SG_2_Strain",
-        "SP6P7_BS2L_BLBJ_SG_3_Strain",
-        "SP6P7_BS2R_HAJ_SG_1_Strain",
-        "SP6P7_BS2R_HAJ_SG_2_Strain",
-        "SP6P7_BS2R_HAJ_SG_3_Strain",
-        "SP6P7_BS2R_AAJ_SG_1_Strain",
-        "SP6P7_BS2R_AAJ_SG_2_Strain",
-        "SP6P7_BS2R_AAJ_SG_3_Strain",
-        "SP6P7_BS2R_HBLBJ_SG1_Strain",
-        "SP6P7_BS2R_HBLBJ_SG2_Strain",
-        "SP6P7_BS2R_HBLBJ_SG3_Strain",
-        "SP6P7_BS2R_BLBJ_SG_1_Strain",
-        "SP6P7_BS2R_BLBJ_SG_2_Strain",
-        "SP6P7_BS2R_BLBJ_SG_3_Strain",
-        "P6_BS2L_NJ_SG_1_Strain",
-        "P6_BS2R_NJ_SG_2_Strain",
-        "P7_BS2L_NJ_SG_3_Strain",
-        "P7_BS2R_NJ_SG_4_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     P6_P7_BS2_RHS_statistics = {
@@ -1290,41 +2946,11 @@ def home():
     P6_P7_BS4_csv_files = [
         dl[1],
         dl[2]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P6_P8_DL2-DataList.csv",
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P7_CP2_DL3-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    P6_P7_BS4_RHS_columns = [
-        "SP7P8_BS4L_HAJ_SG_1_Strain",
-        "SP7P8_BS4L_HAJ_SG_2_Strain",
-        "SP7P8_BS4L_HAJ_SG_3_Strain",
-        "SP7P8_BS4L_AAJ_SG_1_Strain",
-        "SP7P8_BS4L_AAJ_SG_2_Strain",
-        "SP7P8_BS4L_AAJ_SG_3_Strain",
-        "SP7P8_BS4L_HBLBJ_SG1_Strain",
-        "SP7P8_BS4L_HBLBJ_SG2_Strain",
-        "SP7P8_BS4L_HBLBJ_SG3_Strain",
-        "SP7P8_BS4L_BLBJ_SG_1_Strain",
-        "SP7P8_BS4L_BLBJ_SG_2_Strain",
-        "SP7P8_BS4L_BLBJ_SG_3_Strain",
-        "SP7P8_BS4R_HAJ_SG_1_Strain",
-        "SP7P8_BS4R_HAJ_SG_2_Strain",
-        "SP7P8_BS4R_HAJ_SG_3_Strain",
-        "SP7P8_BS4R_AAJ_SG_1_Strain",
-        "SP7P8_BS4R_AAJ_SG_2_Strain",
-        "SP7P8_BS4R_AAJ_SG_3_Strain",
-        "SP7P8_BS4R_HBLBJ_SG1_Strain",
-        "SP7P8_BS4R_HBLBJ_SG2_Strain",
-        "SP7P8_BS4R_HBLBJ_SG3_Strain",
-        "SP7P8_BS4R_BLBJ_SG_1_Strain",
-        "SP7P8_BS4R_BLBJ_SG_2_Strain",
-        "SP7P8_BS4R_BLBJ_SG_3_Strain",
-        "P7_BS4L_NJ_SG_1_Strain",
-        "P7_BS4R_NJ_SG_2_Strain",
-        "P8_BS4L_NJ_SG_3_Strain",
-        "P8_BS4R_NJ_SG_4_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     P6_P7_BS4_RHS_statistics = {
@@ -1371,41 +2997,11 @@ def home():
     P6_P7_BS6_csv_files = [
         dl[2],
         dl[3]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P7_CP2_DL3-DataList.csv",
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P9_A2_DL4-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    P6_P7_BS6_RHS_columns = [
-        "SP9CP2_BS6L_HAJ_SG_1_Strain",
-        "SP9CP2_BS6L_HAJ_SG_2_Strain",
-        "SP9CP2_BS6L_HAJ_SG_3_Strain",
-        "SP9CP2_BS6L_AAJ_SG_1_Strain",
-        "SP9CP2_BS6L_AAJ_SG_2_Strain",
-        "SP9CP2_BS6L_AAJ_SG_3_Strain",
-        "SP9CP2_BS6L_HBLBJSG1_Strain",
-        "SP9CP2_BS6L_HBLBJSG2_Strain",
-        "SP9CP2_BS6L_HBLBJSG3_Strain",
-        "SP9CP2_BS6L_BLBJ_SG1_Strain",
-        "SP9CP2_BS6L_BLBJ_SG2_Strain",
-        "SP9CP2_BS6L_BLBJ_SG3_Strain",
-        "SP9CP2_BS6R_HAJ_SG_1_Strain",
-        "SP9CP2_BS6R_HAJ_SG_2_Strain",
-        "SP9CP2_BS6R_HAJ_SG_3_Strain",
-        "SP9CP2_BS6R_AAJ_SG1_Strain",
-        "SP9CP2_BS6R_AAJ_SG_2_Strain",
-        "SP9CP2_BS6R_AAJ_SG_3_Strain",
-        "SP9CP2_BS6R_HBLBJSG1_Strain",
-        "SP9CP2_BS6R_HBLBJSG2_Strain",
-        "SP9CP2_BS6R_HBLBJSG3_Strain",
-        "SP9CP2_BS6R_BLBJSG1_Strain",
-        "SP9CP2_BS6R_BLBJSG2_Strain",
-        "SP9CP2_BS6R_BLBJSG3_Strain",
-        "P9_BS6L_NJ_SG_1_Strain",
-        "P9_BS6R_NJ_SG_2_Strain",
-        "CP2_BS6L_NJ_SG_3_Strain",
-        "CP2_BS6R_NJ_SG_4_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     P6_P7_BS6_RHS_statistics = {
@@ -1449,29 +3045,11 @@ def home():
 
     dunlop_Viaduct_csv_files = [
         dl[3]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P9_A2_DL4-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    dunlop_Viaduct_RHS_columns = [
-        "SCP2P10_RBLG_SG_1_Strain",
-        "SP10P11_RBLG_SG_1_Strain",
-        "SP11P12_RBLG_SG_1_Strain",
-        "SP12P13_RBLG_SG_1_Strain",
-        "SP13P14_RBLG_SG_1_Strain",
-        "SP14A2_RBLG_SG_1_Strain",
-        "A2_RBLG_SG_1_Strain"
-    ]
-
-    dunlop_Viaduct_LHS_columns = [
-        "SCP2P10_LBLG_SG_2_Strain",
-        "SP10P11_LBLG_SG_2_Strain",
-        "SP11P12_LBLG_SG_2_Strain",
-        "SP12P13_LBLG_SG_2_Strain",
-        "SP13P14_LBLG_SG_2_Strain",
-        "SP14A2_LBLG_SG_2_Strain",
-        "A2_LBLG_SG_2_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     dunlop_Viaduct_RHS_statistics = {
@@ -1542,16 +3120,11 @@ def home():
     P7_P8_BS4_additional_csv_files = [
         dl[1],
         dl[2]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P6_P8_DL2-DataList.csv",
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P7_CP2_DL3-DataList.csv"
     ]
 
-    # Define the columns for analysis
-    P7_P8_BS4_additional_RHS_columns = [
-        "SP7P8_BS4L_HBLBJ_SG4_Strain",
-        "Additional_SG13_Strain",
-        "Additional_SG14_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     P7_P8_BS4_additional_RHS_statistics = {
@@ -1597,29 +3170,11 @@ def home():
 
     chitpur_viaduct_csv_files = [
         dl[4]
-        # "/content/drive/MyDrive/Colab Notebooks/dristy-automation-csvs/Tallah_ROB_P16_A3_DL5-DataList.csv",
     ]
 
-    # Define the columns for analysis
-    chitpur_viaduct_RHS_columns = [
-        "SP16P17_RBLG_SG_1_Strain",
-        "SP17P18_RBLG_SG_1_Strain",
-        "SP18P19_RBLG_SG_1_Strain",
-        "SP19P20_RBLG_SG_1_Strain",
-        "SP20P21_RBLG_SG_1_Strain",
-        "SP21A3_RBLG_SG_1_Strain",
-        "A3_RBLG_SG_1_Strain"
-    ]
-
-    chitpur_viaduct_LHS_columns = [
-        "SP16P17_LBLG_SG_2_Strain",
-        "SP17P18_LBLG_SG_2_Strain",
-        "SP18P19_LBLG_SG_2_Strain",
-        "SP19P20_LBLG_SG_2_Strain",
-        "SP20P21_LBLG_SG_2_Strain",
-        "SP21A3_LBLG_SG_2_Strain",
-        "A3_LBLG_SG_2_Strain"
-    ]
+    # I made this array globally accessable so that we don't need
+    # to copy and past the same code again and again. 
+    # Check line 81
 
     # Calculate the statistics
     chitpur_viaduct_RHS_statistics = {
@@ -1706,7 +3261,7 @@ def home():
     corrosion_data = corrosion_selected_columns.to_dict(orient='records')
     ################## END CORROSION DATA ######################
 
-                
+
     return render_template(
         "home.html",
         start_date=start_date, end_date=end_date,
@@ -1714,7 +3269,6 @@ def home():
         weather_datas=weather_datas, laser_datas=laser_datas,
         temprature_meter_datas=temprature_meter_datas, 
         tilt_meter_datas=tilt_meter_datas, ldvt_datas=ldvt_datas,
-        chart_columns=chart_columns,
         shayam_bazar_viaduct_RHS_statistics_datas=shayam_bazar_viaduct_RHS_statistics_datas,
         shayam_bazar_viaduct_LHS_statistics_datas=shayam_bazar_viaduct_LHS_statistics_datas,
         P6_P7_BS1_LHS_statistics_datas=P6_P7_BS1_LHS_statistics_datas,
@@ -1730,3 +3284,688 @@ def home():
         chitpur_viaduct_LHS_statistics_datas=chitpur_viaduct_LHS_statistics_datas,
         corrosion_data=corrosion_data
     )
+
+
+#   STRAIN GUGES CHARTS VIEW
+@main.route('/strain/')
+def strain():
+    # shayam_bazar_viaduct_csv_files = [
+    #     dl[0]
+    # ] 
+    
+    # P6_P7_BS1_csv_files  = [
+    #     dl[0],
+    #     dl[1]
+    # ]
+
+    # P6_P7_BS3_csv_files = [
+    #     dl[1],
+    #     dl[2]
+    # ]
+
+    # P6_P7_BS5_csv_files = [
+    #     dl[2],
+    #     dl[3]
+    # ]
+
+    # P6_P7_BS2_csv_files = [
+    #     dl[0],
+    #     dl[1]
+    # ]
+
+    # P6_P7_BS4_csv_files = [
+    #     dl[1],
+    #     dl[2]
+    # ]
+
+    # P6_P7_BS6_csv_files = [
+    #     dl[2],
+    #     dl[3]
+    # ]
+
+    # dunlop_Viaduct_csv_files = [
+    #     dl[3]
+    # ]
+
+    # P7_P8_BS4_additional_csv_files = [
+    #     dl[1],
+    #     dl[2]
+    # ]
+
+    # chitpur_viaduct_csv_files = [
+    #     dl[4]
+    # ]
+
+    # # Create a list to store all the CSV files and their corresponding columns
+    # csv_data_list = [
+    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_RHS_columns),
+    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_LHS_columns),
+    #     (P6_P7_BS1_csv_files, P6_P7_BS1_LHS_columns),
+    #     (P6_P7_BS3_csv_files, P6_P7_BS3_LHS_columns),
+    #     (P6_P7_BS5_csv_files, P6_P7_BS5_LHS_columns),
+    #     (P6_P7_BS2_csv_files, P6_P7_BS2_RHS_columns),
+    #     (P6_P7_BS4_csv_files, P6_P7_BS4_RHS_columns),
+    #     (P6_P7_BS6_csv_files, P6_P7_BS6_RHS_columns),
+    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_RHS_columns),
+    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_LHS_columns),
+    #     (P7_P8_BS4_additional_csv_files, P7_P8_BS4_additional_RHS_columns),
+    #     (chitpur_viaduct_csv_files, chitpur_viaduct_RHS_columns),
+    #     (chitpur_viaduct_csv_files, chitpur_viaduct_LHS_columns)
+    # ]
+
+    # strain_charts_data = []
+
+    # # Iterate over each group of CSV files and their columns
+    # for csv_files, columns in csv_data_list:
+    #     # Create an empty dictionary to store data for this group
+    #     group_data = {
+    #         "csv_files": csv_files, 
+    #         "columns": columns,
+    #         "data": []
+    #     }
+
+    #     ###############################################
+    #     #### THIS CODE RETURNING AN ERROR 
+    #     #### KeyError: "['SP6P7_BS1L_HAJ_SG_1_Strain', 'SP6P7_BS1L_HAJ_SG_2_Strain', 'SP6P7_BS1L_HAJ_SG_3_Strain', 'SP6P7_BS1L_AAJ_SG_1_Strain', 'SP6P7_BS1L_AAJ_SG_2_Strain', 'SP6P7_BS1L_AAJ_SG_3_Strain', 'SP6P7_BS1L_HBLBJ_SG1_Strain', 'SP6P7_BS1L_HBLBJ_SG2_Strain', 'SP6P7_BS1L_HBLBJ_SG3_Strain', 'SP6P7_BS1L_BLBJ_SG_1_Strain', 'SP6P7_BS1L_BLBJ_SG_2_Strain', 'SP6P7_BS1L_BLBJ_SG3_Strain', 'P7_BS1L_NJ_SG_3_Strain', 'P7_BS1R_NJ_SG_4_Strain'] not in index"
+    #     ###############################################
+        
+    #     # # Iterate over each CSV file in the group
+    #     # for csv_file in csv_files:
+    #     #     # Read the CSV file into a DataFrame
+    #     #     df = pd.read_csv(csv_file, skiprows=3)
+
+    #     #     # Extract data for the defined columns and store it in the dictionary
+    #     #     group_data["data"].extend(df[columns].values.tolist())
+    #     ############################################
+    #     ############################################
+
+    #     # Iterate over each CSV file in the group
+    #     for csv_file in csv_files:
+    #         # Read the CSV file into a DataFrame
+    #         df = pd.read_csv(csv_file, skiprows=3)
+    #         df.columns = df.columns.str.strip()
+
+    #         # Find the common columns between DataFrame and specified columns
+    #         common_columns = list(set(columns).intersection(df.columns))
+    #         group_data["labels"] = list(df['DateTime'])
+            
+    #         # Extract data for the common columns and store it in the dictionary
+    #         for column in common_columns:
+    #             column_data = {
+    #                 "column_name": column,
+    #                 "csv_name": csv_file,
+    #                 "values": df[column].tolist()
+    #             }
+                
+    #             group_data["data"].append(column_data)
+
+    #     # Append the data for this group to the list for all CSV files
+    #     strain_charts_data.append(group_data)
+
+
+
+    # # Define the CSV files and their corresponding columns for generating the strain charts
+    # csv_data_list = [
+    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_RHS_columns),
+    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_LHS_columns),
+    #     (P6_P7_BS1_csv_files, P6_P7_BS1_LHS_columns),
+    #     (P6_P7_BS3_csv_files, P6_P7_BS3_LHS_columns),
+    #     (P6_P7_BS5_csv_files, P6_P7_BS5_LHS_columns),
+    #     (P6_P7_BS2_csv_files, P6_P7_BS2_RHS_columns),
+    #     (P6_P7_BS4_csv_files, P6_P7_BS4_RHS_columns),
+    #     (P6_P7_BS6_csv_files, P6_P7_BS6_RHS_columns),
+    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_RHS_columns),
+    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_LHS_columns),
+    #     (P7_P8_BS4_additional_csv_files, P7_P8_BS4_additional_RHS_columns),
+    #     (chitpur_viaduct_csv_files, chitpur_viaduct_RHS_columns),
+    #     (chitpur_viaduct_csv_files, chitpur_viaduct_LHS_columns)
+    # ]
+
+    # strain_charts_data = []
+
+    # # Iterate over each group of CSV files and their columns
+    # for csv_files, columns in csv_data_list:
+    #     # Create an empty dictionary to store data for this group
+    #     group_data = {
+    #         "csv_files": csv_files, 
+    #         "columns": columns,
+    #         "data": [],
+    #         "labels": []
+    #     }
+
+    #     # Iterate over each CSV file in the group
+    #     for csv_file in csv_files:
+    #         # Read the CSV file into a DataFrame
+    #         df = pd.read_csv(csv_file, skiprows=3)
+    #         df.columns = df.columns.str.strip()
+
+    #         # Find the common columns between DataFrame and specified columns
+    #         common_columns = list(set(columns).intersection(df.columns))
+    #         group_data["labels"] = list(df['DateTime'])
+            
+    #         # Extract data for the common columns and store it in the dictionary
+    #         for column in common_columns:
+    #             column_data = {
+    #                 "column_name": column,
+    #                 "csv_name": csv_file,
+    #                 "values": df[column].tolist()
+    #             }
+                
+    #             group_data["data"].append(column_data)
+
+    #     # Append the data for this group to the list for all CSV files
+    #     strain_charts_data.append(group_data)
+
+    # Define the CSV files and their corresponding columns for generating the strain charts
+    # csv_data_list = [
+    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_RHS_columns),
+    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_LHS_columns),
+    #     (P6_P7_BS1_csv_files, P6_P7_BS1_LHS_columns),
+    #     (P6_P7_BS3_csv_files, P6_P7_BS3_LHS_columns),
+    #     (P6_P7_BS5_csv_files, P6_P7_BS5_LHS_columns),
+    #     (P6_P7_BS2_csv_files, P6_P7_BS2_RHS_columns),
+    #     (P6_P7_BS4_csv_files, P6_P7_BS4_RHS_columns),
+    #     (P6_P7_BS6_csv_files, P6_P7_BS6_RHS_columns),
+    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_RHS_columns),
+    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_LHS_columns),
+    #     (P7_P8_BS4_additional_csv_files, P7_P8_BS4_additional_RHS_columns),
+    #     (chitpur_viaduct_csv_files, chitpur_viaduct_RHS_columns),
+    #     (chitpur_viaduct_csv_files, chitpur_viaduct_LHS_columns)
+    # ]
+
+    # Initialize a list to store chart data for all charts
+    strain_chart_datas = []
+
+
+    # Iterate over each CSV file in the group
+    for csv_file in dl:
+        # Read the CSV file into a DataFrame
+        df = pd.read_csv(csv_file, skiprows=3)
+        df.columns = df.columns.str.strip()
+
+        # Initialize a list to store chart data for this CSV file
+        csv_charts_data = []
+
+        for i, columns in enumerate(strain_chart_columns):
+            # Check if all required columns exist in the DataFrame
+            if all(column in df.columns for column in columns):
+                # Create a dictionary to store chart data
+                chart_data = {
+                    "dl_name": csv_file,
+                    "chart_for": '',
+                    "chart_title": f"Chart {i + 1}",
+                    "labels": list(df['DateTime']),
+                    "datasets": []
+                }
+
+                for column in columns:
+
+                    if column in shayam_bazar_viaduct_RHS_columns:
+                        chart_data["chart_for"] = 'shayam_bazar_viaduct_RHS'
+                 
+
+                    if column in shayam_bazar_viaduct_LHS_columns:
+                        chart_data["chart_for"] = 'shayam_bazar_viaduct_LHS'
+
+
+                    if column in P6_P7_BS1_LHS_columns:
+                        chart_data["chart_for"] = 'P6_P7_BS1_LHS'
+
+
+                    if column in P6_P7_BS3_LHS_columns:
+                        chart_data["chart_for"] = 'P6_P7_BS3_LHS'
+
+
+                    if column in P6_P7_BS5_LHS_columns:
+                        chart_data["chart_for"] = 'P6_P7_BS5_LHS'
+
+
+                    if column in P6_P7_BS2_RHS_columns:
+                        chart_data["chart_for"] = 'P6_P7_BS2_RHS'
+
+
+                    if column in P6_P7_BS4_RHS_columns:
+                        chart_data["chart_for"] = 'P6_P7_BS4_RHS'
+                
+
+                    if column in P6_P7_BS6_RHS_columns:
+                        chart_data["chart_for"] = 'P6_P7_BS6_RHS'
+
+
+                    if column in dunlop_Viaduct_RHS_columns:
+                        chart_data["chart_for"] = 'dunlop_Viaduct_RHS'
+
+
+                    if column in dunlop_Viaduct_LHS_columns:
+                        chart_data["chart_for"] = 'dunlop_Viaduct_LHS'
+                   
+
+                    if column in P7_P8_BS4_additional_RHS_columns:
+                        chart_data["chart_for"] = 'P7_P8_BS4_additional_RHS'
+
+
+                    if column in chitpur_viaduct_RHS_columns:
+                        chart_data["chart_for"] = 'chitpur_viaduct_RHS'
+
+
+                    if column in chitpur_viaduct_LHS_columns:
+                        chart_data["chart_for"] = 'chitpur_viaduct_LHS'
+                   
+
+                    # Create a dataset dictionary for this column
+                    dataset = {
+                        "label": column,
+                        "data": list(df[column])
+                    }
+
+                    # Append the dataset to the datasets list inside the main chart_data dictionary
+                    chart_data["datasets"].append(dataset)
+
+                # Generate a random ID for the chart
+                chart_data["canvas_id"] = generate_random_id()
+
+                # Append the chart data to the list for this CSV file
+                strain_chart_datas.append(chart_data)
+            else:
+                print(f"Required columns not found in {dl}. Skipping chart {i + 1}.")
+
+        # Append the data for this group to the list for all CSV files
+        # strain_chart_datas.append(csv_charts_data)
+
+    return render_template(
+        'strain.html',
+        strain_chart_datas=strain_chart_datas
+    )
+
+#   ACCELEROMETERS VIEW 
+@main.route("/accelerometers/")
+def accelerometers():
+    # ########## START Accelero Meter Data ##########
+    # Initialize a list to store data from all CSV files
+    accelerometers_charts_data = []
+
+    # Iterate over each CSV file
+    for csv_file in accelerometers_csv:
+        # Read the CSV file into a DataFrame
+        df = pd.read_csv(csv_file, skiprows=3)
+        df.columns = df.columns.str.strip()
+
+        # Create a dictionary to store data for this CSV file
+        csv_data = {
+            "csv_name": csv_file,  # Track the name of this CSV in the data
+            "data": df.to_dict(orient="list")
+        }
+
+        # Append the data for this CSV file to the list for all CSV files
+        accelerometers_charts_data.append(csv_data)
+    # ########## END Temperature Meter Data ##########
+    return render_template('accelerometers.html', accelerometers_charts_data=accelerometers_charts_data) 
+
+
+#   ACCELEROMETERS CHART VIEW 
+@main.route("/lvdt/")
+def ldvt():
+    # --------------------------------------- #
+    # -- SHOWING LINE CHART OF LDVT Data ---- #
+    # --------------------------------------- #
+    
+    chart_columns = [
+        ['P6_BS1_LGS_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
+        ['P6_BS2_LGS_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
+        ['P6_BS1_FF_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
+        ['P6_BS2_FF_D_Displacement', 'P6_BS1_BS2_Alert_Positive', 'P6_BS1_BS2_Alert_Negative', 'P6_BS1_BS2_Action_Positive', 'P6_BS1_BS2_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
+        ['P7_BS1_TGS_Displacement', 'P7_TGS_Alert_Positive', 'P7_TGS_Alert_Negative', 'P7_TGS_Action_Positive', 'P7_TGS_Action_Negative', 'P6_BS1_BS2_Alarm_Positive', 'P6_BS1_BS2_Alarm_Negative'],
+        ['P7_BS1_FX_Displacement', 'P7_FX_Alert_Positive', 'P7_FX_Alert_Negative', 'P7_FX_Action_Positive', 'P7_FX_Action_Negative', 'P7_FX_Alarm_Positive', 'P7_FX_Alarm_Negative'],
+        ['P7_BS2_FX_Displacement', 'P7_FX_Alert_Positive', 'P7_FX_Alert_Negative', 'P7_FX_Action_Positive', 'P7_FX_Action_Negative', 'P7_FX_Alarm_Positive', 'P7_FX_Alarm_Negative'],
+        ['P7_P8_BS3_FF_Displacement', 'P7_P8_BS3_BS4_Alert_Positive', 'P7_P8_BS4_Alert_Negative', 'P7_P8_BS4_Action_Positive', 'P7_P8_BS4_Action_Negative', 'P7_P8_BS4_Alarm_Positive', 'P7_P8_BS4_Alarm_Negative'],
+        ['P7_P8_BS3_LGS_Displacement', 'P7_P8_BS3_BS4_Alert_Positive', 'P7_P8_BS4_Alert_Negative', 'P7_P8_BS4_Action_Positive', 'P7_P8_BS4_Action_Negative', 'P7_P8_BS4_Alarm_Positive', 'P7_P8_BS4_Alarm_Negative'],
+        ['P7_P8_BS4_LGS_Displacement', 'P7_P8_BS3_BS4_Alert_Positive', 'P7_P8_BS4_Alert_Negative', 'P7_P8_BS4_Action_Positive', 'P7_P8_BS4_Action_Negative', 'P7_P8_BS4_Alarm_Positive', 'P7_P8_BS4_Alarm_Negative'],
+        ['P7_BS2_TGS_Displacement', 'P7_TGS_Alert_Positive', 'P7_TGS_Alert_Negative', 'P7_TGS_Action_Positive', 'P7_TGS_Action_Negative', 'P7_TGS_Alarm_Positive', 'P7_TGS_Alarm_Negative'],
+        ['P8_D1_Displacement', 'TGS_Alert_Positive', 'TGS_Alert_Negative', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
+        ['P8_D2_Displacement', 'P8_D2_D3_Alert_Positive', 'P8_D2_D3_Alert_Negative', 'P8_D2_D3_Action_Positive', 'P8_D2_D3_Action_Negative', 'P8_D2_D3_Alarm_Positive', 'P8_D2_D3_Alarm_Negative'],
+        ['P8_D3_Displacement', 'P8_D2_D3_Alert_Positive', 'P8_D2_D3_Alert_Negative', 'P8_D2_D3_Action_Positive', 'P8_D2_D3_Action_Negative', 'P8_D2_D3_Alarm_Positive', 'P8_D2_D3_Alarm_Negative'],
+        ['P8_D4_Displacement', 'TGS_Alert_Positive', 'TGS_Alert_Negative', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
+        ['P9_D1_Displacement', 'FF_Alert_Positive', 'FF_Alert_Negative', 'FF_Action_Positive', 'FF_Action_Negative', 'FF_Alarm_Positive', 'FF_Alarm_Negative'],
+        ['P9_D2_Displacement', 'LGS_Alert_Positive', 'LGS_Alert_Negative', 'LGS_Action_Positive', 'LGS_Action_Negative', 'LGS_Alarm_Positive', 'LGS_Alarm_Negative'],
+        ['P9_D3_Displacement', 'LGS_Alert_Positive', 'LGS_Alert_Negative', 'LGS_Action_Positive', 'LGS_Action_Negative', 'LGS_Alarm_Positive', 'LGS_Alarm_Negative'],
+        ['P9_D4_Displacement', 'FF_Alert_Positive', 'FF_Alert_Negative', 'FF_Action_Positive', 'FF_Action_Negative', 'FF_Alarm_Positive', 'FF_Alarm_Negative'],
+        ['P12_D1_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P12_D2_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P12_D3_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P12_D4_Displacement', 'P11_P12_D4_D5_Alert_Positive', 'P11_P12_D4_D5_Alert_Negative', 'P11_P12_D4_D5_Action_Positive', 'P11_P12_D4_D5_Action_Negative', 'P11_P12_D4_D5_Alarm_Positive', 'P11_P12_D4_D5_Alarm_Negative'],
+        ['P12_D5_Displacement', 'P11_P12_D4_D5_Alert_Positive', 'P11_P12_D4_D5_Alert_Negative', 'P11_P12_D4_D5_Action_Positive', 'P11_P12_D4_D5_Action_Negative', 'P11_P12_D4_D5_Alarm_Positive', 'P11_P12_D4_D5_Alarm_Negative'],
+        ['P12_D6_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P12_D7_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P12_D8_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D1_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D2_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D3_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D4_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D5_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D6_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D7_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['P11_D8_Displacement', 'P11_P12_D1_D8_Alert_Positive', 'P11_P12_D1_D8_Alert_Negative', 'P11_P12_D1_D8_Action_Positive', 'P11_P12_D1_D8_Action_Negative', 'P11_P12_D1_D8_Alarm_Positive', 'P11_P12_D1_D8_Alarm_Negative'],
+        ['CP2_BS5_TGS_D_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
+        ['CP2_BS5_FX_D_Displacement', 'FX_Alert_Negative', 'FX_Alert_Positive', 'FX_Action_Positive', 'FX_Action_Negative', 'FX_Alarm_Positive', 'FX_Alarm_Negative'],
+        ['CP_BS6_FX_D_Displacement', 'FX_Alert_Negative', 'FX_Alert_Positive', 'FX_Action_Positive', 'FX_Action_Negative', 'FX_Alarm_Positive', 'FX_Alarm_Negative'],
+        ['CP2_BS6_TGS_D_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
+        ['P18_D1_Displacement', 'FF_Alert_Negative', 'FF_Alert_Positive', 'FF_Action_Positive', 'FF_Action_Negative', 'FF_Alarm_Positive', 'FF_Alarm_Negative'],
+        ['P18_D2_Displacement', 'LGS_Alert_Negative', 'LGS_Alert_Positive', 'LGS_Action_Positive', 'LGS_Action_Negative', 'LGS_Alarm_Positive', 'LGS_Alarm_Negative'],
+        ['P18_D3_Displacement', 'LGS_Alert_Negative', 'LGS_Alert_Positive', 'LGS_Action_Positive', 'LGS_Action_Negative', 'LGS_Alarm_Positive', 'LGS_Alarm_Negative'],
+        ['P18_D4_Displacement', 'FF_Alert_Negative', 'FF_Alert_Positive', 'FF_Action_Positive', 'FF_Action_Negative', 'FF_Alarm_Positive', 'FF_Alarm_Negative'],
+        ['P17_D1_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'TGS_Action_Positive', 'TGS_Action_Negative', 'TGS_Alarm_Positive', 'TGS_Alarm_Negative'],
+        ['P17_D2_Displacement', 'P17_D3_D2_Alert_Negative', 'P17_D3_D2_Alert_Positive', 'P17_D3_D2_Action_Positive', 'P17_D3_D2_Action_Negative', 'P17_D3_D2_Alarm_Positive', 'P17_D3_D2_Alarm_Negative'],
+        ['P17_D3_Displacement', 'P17_D3_D2_Alert_Negative', 'P17_D3_D2_Alert_Positive', 'P17_D3_D2_Action_Positive', 'P17_D3_D2_Action_Negative', 'P17_D3_D2_Alarm_Positive', 'P17_D3_D2_Alarm_Negative'],
+        ['P17_D4_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'P17_D3_D2_Action_Positive', 'P17_D3_D2_Action_Negative', 'P17_D3_D2_Alarm_Positive', 'P17_D3_D2_Alarm_Negative']
+    ]
+
+    # # Initialize a list to store chart data for all charts
+    # ldvt_charts_data = []
+
+    # # Iterate over each CSV file
+    # for dl_csv_file in dl:
+    #     # Read the CSV file into a DataFrame
+    #     df = pd.read_csv(dl_csv_file, skiprows=3)
+    #     df.columns = df.columns.str.strip()
+
+    #     # Initialize a list to store chart data for this CSV file
+    #     csv_charts_data = []
+
+    #     for i, columns in enumerate(chart_columns):
+    #         # Check if all required columns exist in the DataFrame
+    #         if all(column in df.columns for column in columns):
+    #             print("inside")
+    #             # Create a dictionary to store chart data
+    #             chart_data = {
+    #                 "dl_name": dl_csv_file,
+    #                 "chart_title": f"Chart {i + 1}",
+    #                 "labels": list(df['DateTime']),
+    #                 "datasets": []
+    #             }
+
+    #             # Generate a random ID for the chart
+    #             chart_data["canvas_id"] = generate_random_id()
+
+    #             for column in columns:
+    #                 # Create a dataset dictionary for this column
+    #                 dataset = {
+    #                     "label": column,
+    #                     "data": list(df[column])
+    #                 }
+
+    #                 # Generate a random ID for the chart
+    #                 chart_data["canvas_id"] = generate_random_id()
+
+    #                 # Append the chart data to the list for this CSV file
+    #                 csv_charts_data.append(chart_data)
+
+    #             # Add the dataset to the chart data
+    #             chart_data["datasets"].append(dataset)
+
+    #             print(len(chart_data), chart_data)
+    #             # Append the chart data to the list for this CSV file
+    #             csv_charts_data.append(chart_data)
+    #         else:
+    #             print(f"Required columns not found in {dl_csv_file}. Skipping chart {i + 1}.")
+
+    #     # Append the chart data for this CSV file to the list for all CSV files
+    #     ldvt_charts_data.append(csv_charts_data)
+
+    # Initialize a list to store chart data for all charts
+    ldvt_charts_data = []
+
+    # Iterate over each CSV file
+    for dl_csv_file in dl:
+        # Read the CSV file into a DataFrame
+        df = pd.read_csv(dl_csv_file, skiprows=3)
+        df.columns = df.columns.str.strip()
+
+        # Initialize a list to store chart data for this CSV file
+        csv_charts_data = []
+
+        for i, columns in enumerate(chart_columns):
+            # Check if all required columns exist in the DataFrame
+            if all(column in df.columns for column in columns):
+                # Create a dictionary to store chart data
+                chart_data = {
+                    "dl_name": dl_csv_file,
+                    "chart_title": f"Chart {i + 1}",
+                    "labels": list(df['DateTime']),
+                    "datasets": []
+                }
+
+                for column in columns:
+                    # Create a dataset dictionary for this column
+                    dataset = {
+                        "label": column,
+                        "data": list(df[column])
+                    }
+
+                    # Append the dataset to the datasets list inside the main chart_data dictionary
+                    chart_data["datasets"].append(dataset)
+
+                # Generate a random ID for the chart
+                chart_data["canvas_id"] = generate_random_id()
+
+                # Append the chart data to the list for this CSV file
+                csv_charts_data.append(chart_data)
+            else:
+                print(f"Required columns not found in {dl_csv_file}. Skipping chart {i + 1}.")
+
+        # Append the chart data for this CSV file to the list for all CSV files
+        ldvt_charts_data.append(csv_charts_data)
+
+    return render_template('ldvt.html', ldvt_charts_data=ldvt_charts_data)
+
+
+
+#   LASER CHART VIEW 
+@main.route("/laser/")
+def laser():
+    # --------------------------------------- #
+    # -- SHOWING LINE CHART OF Laser Data --- #
+    # --------------------------------------- #
+
+    # Read the CSV file into a DataFrame
+    laser_csv_file = laser_csv
+    laser_df = pd.read_csv(laser_csv_file, skiprows=3)
+    laser_df.columns = laser_df.columns.str.strip()
+
+    # Initialize an array to store data for each chart
+    laser_charts_data = []
+
+    # Iterate over the Deflection columns
+    for i in range(1, 6):
+        deflection_column = f"Deflection_{i}"
+        threshold_column = f"Threshold_LS{i}_Alert"
+
+        # Create data dictionary for this chart
+        chart_data = {
+            f"ls{i}": [{
+                "labels": list(laser_df['DateTime']),  # Assuming 'DateTime' is a column in 'laser_df'
+                "deflection_data": list(laser_df[deflection_column]),
+                "threshold_data": list(laser_df[threshold_column]),
+            }],
+            "chart_id": f"laser_chart_{i}",
+            "chart_title": f"Laser Chart {i}",
+        }
+
+        # Append data dictionary to the array
+        laser_charts_data.append(chart_data)
+
+    # Store the chart data in the global dictionary
+    template_data_dict['laser'] = laser_charts_data
+
+    return render_template('laser.html', laser_charts_data=laser_charts_data)
+
+
+###########################################
+## USING SUB PLOT
+###########################################
+# @main.route("/temperature/")
+# def temperature():
+#     temperature_meter_csv_files = [dl[1], dl[3]]
+
+#     # Define the columns for analysis
+#     temperature_columns = [
+#         "SPP6P7_BS1L_ARCH_T1",
+#         "SP9CP2_BS6R_ARCH_T2_Temp"
+#     ]
+
+#     temperature_charts_data = []
+
+#     # Iterate over each CSV file
+#     for csv_file in temperature_meter_csv_files:
+#         # Read the CSV file into a DataFrame
+#         df = pd.read_csv(csv_file, skiprows=3)
+#         df.columns = df.columns.str.strip()
+
+#         # Find the common columns between DataFrame and specified columns
+#         common_columns = list(set(temperature_columns).intersection(df.columns))
+        
+#         # Extract data for the common columns and store it in the dictionary
+#         for column in common_columns:
+#             column_data = {
+#                 "column_name": column,
+#                 "csv_name": csv_file,
+#                 "labels": list(df['DateTime']),
+#                 "values": df[column].tolist()
+#             }
+            
+#             temperature_charts_data.append(column_data)
+    
+#     # Store the chart data in the global dictionary
+#     template_data_dict['temperature'] = temperature_charts_data
+
+#     return render_template('temperature.html', temperature_charts_data=temperature_charts_data)
+
+
+###########################################
+## USING SINGLE PLOT AND LOOP THEM OVER
+###########################################
+@main.route("/temperature/")
+def temperature():
+    temperature_meter_csv_files = [dl[1], dl[3]]
+
+    # Define the columns for analysis
+    temperature_columns = [
+        "SPP6P7_BS1L_ARCH_T1",
+        "SP9CP2_BS6R_ARCH_T2_Temp"
+    ]
+
+    temperature_charts_data = []
+
+    # Iterate over each CSV file
+    for csv_file in temperature_meter_csv_files:
+        # Read the CSV file into a DataFrame
+        df = pd.read_csv(csv_file, skiprows=3)
+        df.columns = df.columns.str.strip()
+
+        # Find the common columns between DataFrame and specified columns
+        common_columns = list(set(temperature_columns).intersection(df.columns))
+        
+        # Extract data for the common columns and store it in the dictionary
+        for column in common_columns:
+            column_data = {
+                "column_name": column,
+                "csv_name": csv_file,
+                "labels": list(df['DateTime']),
+                "values": df[column].tolist()
+            }
+            
+            temperature_charts_data.append(column_data)
+
+    # Create individual plotly figures for each column
+    plotly_figures = []
+    for column_data in temperature_charts_data:
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=column_data["labels"], y=column_data["values"], mode='lines', name=column_data["column_name"]))
+        fig.update_layout(title_text=f"Temperature Chart for {column_data['column_name']}")
+        plotly_figures.append(fig)
+
+    # Convert each plotly figure to an HTML div element
+    plotly_divs = [fig.to_html(full_html=False) for fig in plotly_figures]
+
+    return render_template('temperature.html', plotly_divs=plotly_divs)
+
+
+
+
+# # Function to collect template data from all routes
+# def collect_template_data():
+#     with current_app.test_request_context():
+#         with data_collection_lock:
+#             global data_collected
+#             if not data_collected:
+#                 for rule in current_app.url_map.iter_rules():
+#                     if rule.endpoint != 'static' and rule.endpoint.startswith('main.'):
+#                         # Simulate the request for each route and collect data
+#                         url = f"{rule.rule.lstrip('/')}"
+#                         with current_app.test_client() as client:
+#                             response = client.get(url)
+#                             template_data_dict[url] = response.get_data(as_text=True)
+#                 data_collected = True
+
+
+# Function to collect template data from all routes
+# def collect_template_data():
+#     with current_app.app_context():
+#         with data_collection_lock:
+#             global data_collected
+#             if not data_collected:
+#                 for route in routes_to_collect:
+#                     url = route
+#                     # Render the template and store the rendered data
+#                     with current_app.test_request_context():
+#                         template_data = render_template(f'{route}.html')
+#                     template_data_dict[url] = template_data
+#                 data_collected = True
+
+# # Function to generate a PDF for each template
+# def generate_pdf(template_data, lock):
+#     # Convert the HTML to PDF using pdfkit
+#     pdf = pdfkit.from_string(template_data, False)
+
+#     # Append the PDF content to the global list
+#     pdf_content.append(pdf)
+#     lock.release()
+
+# @main.route('/generate_pdf')
+# def generate_combined_pdf():
+#     # Check if data has been collected, if not redirect to /collect_data
+#     global data_collected
+#     if not data_collected:
+#         return redirect(url_for('main.collect_data'))
+
+#     lock = threading.Lock()
+
+#     # Start multiple threads to generate PDFs for each template
+#     threads = []
+#     for template_data in template_data_dict.values():
+#         thread = threading.Thread(target=generate_pdf, args=(template_data, lock))
+#         threads.append(thread)
+#         thread.start()
+
+#     # Wait for all threads to finish
+#     for thread in threads:
+#         thread.join()
+
+#     # Combine PDFs into a single PDF
+#     output = BytesIO()
+#     pdf_writer = PdfWriter()
+#     for content in pdf_content:
+#         pdf_writer.add_page(PdfReader(BytesIO(content)).pages[0])
+#     pdf_writer.write(output)
+
+#     # Prepare response with PDF content
+#     response = make_response(output.getvalue())
+#     response.headers['Content-Type'] = 'application/pdf'
+#     response.headers['Content-Disposition'] = 'attachment; filename=combined.pdf'
+#     return response
+
+# @main.route('/collect_data')
+# def collect_data():
+#     # Collect template data from all routes
+#     collect_template_data()
+#     # Redirect back to /generate_pdf for PDF generation
+#     return redirect(url_for('main.generate_combined_pdf'))

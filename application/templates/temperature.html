@@ -1,0 +1,20 @@
+{% extends "root.html" %}
+{% block title %}
+    BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
+{% endblock %}
+{% block styles %}<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>{% endblock %}
+{% block content %}
+    <!-- USING SUB PLOT -->
+    <!-- <div id="temperature_chart">
+        {{ plotly_div | safe }}
+    </div> -->
+
+
+
+    <!-- USING SINGLE PLOT -->
+    {% for plotly_div in plotly_divs %}
+    <div class="chart-container">
+        {{ plotly_div | safe }}
+    </div>
+    {% endfor %}
+{% endblock %}
