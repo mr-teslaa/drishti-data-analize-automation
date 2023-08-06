@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+    </head>
+    <body>
+        {{ lvdt_charts_data | safe }}
+        {% for chart_data in lvdt_charts_data %}
+        <h2>{{ chart_data["dl_name"] }}</h2>
+        {% for dataset in chart_data["datasets"] %}
+        <div class="chart-container">
+            <h3>{{ chart_data["chart_title"] }} - {{ dataset["label"] }}</h3>
+            <!-- Render the Plotly chart using the canvas_id -->
+            <div id="{{ chart_data['canvas_id'] }}_{{ loop.index }}_{{ dataset['label'] | safe }}">
+                {{ dataset['plotly_div'] | safe }}
+            </div>
+        </div>
+        {% endfor %}
+        {% endfor %}
+    </body>
+</html>

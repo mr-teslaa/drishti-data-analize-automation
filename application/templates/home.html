@@ -12,6 +12,52 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
 {% endblock %}
 
 {% block content %}
+    <!-- STRAIN CHARTS -->
+    <!-- {% for strain_plotly_div in strain_plotly_divs %}
+    <div class="container">
+        <h3>{{ strain_plotly_div["chart_title"] }}</h3>
+        <p>Chart for: {{ strain_plotly_div["chart_for"] }}</p>
+        <p>Data Logger: {{ strain_plotly_div["dl_name"] }}</p>
+
+        <div id="{{ strain_plotly_div['canvas_id'] | safe }}">
+            {{ strain_plotly_div['plotly_div'] | safe }}
+        </div>
+    </div>
+    {% endfor %} -->
+
+    <!-- LVDT CHARTS -->
+    {% for csv_charts_data in lvdt_charts_data %}
+    {% for chart_data in csv_charts_data %}
+    <div class="container">
+        <h3>{{ chart_data["chart_title"] }}</h3>
+        <!-- Render the Plotly chart using the canvas_id -->
+        <div id="{{ chart_data['canvas_id'] | safe }}">
+            {{ chart_data['plotly_div'] | safe }}
+        </div>
+    </div>
+    {% endfor %}
+    {% endfor %}
+
+    <!-- ACCELEROMETER CHARTS -->
+    <!-- {% for chart_data in accelerometers_charts_data %}
+    <h2>{{ chart_data["csv_name"] }}</h2>
+    {% for chart in chart_data["charts"] %}
+    <div class="container">
+        <h3>Accelerometer {{ chart["axis"] }}</h3>
+        <div id="{{ chart_data['canvas_id'] }}_{{ chart['axis'] | safe }}">
+            {{ chart['plotly_div'] | safe }}
+        </div>
+    </div>
+    {% endfor %}
+    {% endfor %} -->
+
+    <!-- TEMPERATURE CHARTS -->
+    {% for temperature_plotly_div in temperature_plotly_divs %}
+    <div class="container">
+        {{ temperature_plotly_div | safe }}
+    </div>
+    {% endfor %}
+
     <main id="report-print">
         <div class="container">
             <div class="header-text text-center">
@@ -1042,13 +1088,7 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
             </div>
 
             <!-- ======= START Graphical representation of Accelerometers ======= -->
-            <div class="text-center">
-                {% for i, columns in enumerate(chart_columns) %}
-                <div class="py-5 my-3">
-                    <img src="{{ url_for('static', filename='charts/strain_gauges_chart_' ~ i ~ '.png') }}" alt="Chart {{ i }}">
-                </div>
-                {% endfor %}
-            </div>
+           
             <!-- <div class="text-center">
                 {% for chart_type in chart_types %}
                     {% for i in range(1, 8) %}
