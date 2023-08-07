@@ -3262,14 +3262,15 @@ def home():
 
     # strain_plotly_divs=strain()
     # accelerometers_charts_data=accelerometers()
-    # ldvt_charts_data=lvdt()
-    # laser_charts_data=laser()
-    # temperature_plotly_divs=temperature()
+    ldvt_charts_data=lvdt()
+    laser_charts_data=laser()
+    temperature_plotly_divs=temperature()
+    ######################################
     strain_plotly_divs=[]
     accelerometers_charts_data=[]
-    ldvt_charts_data=[]
-    laser_charts_data=[]
-    temperature_plotly_divs=[]
+    # ldvt_charts_data=[]
+    # laser_charts_data=[]
+    # temperature_plotly_divs=[]
 
 
     return render_template(
@@ -3304,6 +3305,7 @@ def home():
 
 
 #   STRAIN GUGES CHARTS
+@main.route('/strain/')
 def strain():
     # Initialize a list to store chart data for all charts
     strain_chart_datas = []
@@ -3407,9 +3409,10 @@ def strain():
             else:
                 print(f"Required columns not found in {csv_file}. Skipping chart {i + 1}.")
 
-    return strain_chart_datas
+    return render_template('strain.html', strain_chart_datas=strain_chart_datas)
 
 # ACCELERO METER
+@main.route('/accelerometers/')
 def accelerometers():
     # Initialize a list to store chart data for all CSV files
     accelerometers_charts_data = []
@@ -3455,7 +3458,7 @@ def accelerometers():
         accelerometers_charts_data.append(chart_data)
 
     # ########## END Accelerometer Data ##########
-    return accelerometers_charts_data
+    return render_template('accelerometers.html', accelerometers_charts_data=accelerometers_charts_data)
 
 
 #   ACCELEROMETERS CHART VIEW 
