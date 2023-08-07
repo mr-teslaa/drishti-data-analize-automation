@@ -53,40 +53,40 @@ weather_csv = "AutomaticWeatherStation_Data_List.csv"
 laser_csv = "TallahROBLaser_Data_List.csv"
 
 accelerometers_csv = [
-    "Tallah_ROB Accelerometer_3DACC1_A1_Approach -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC2_P6_P7_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC3_P6_P7_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC4_P7_P8_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC5_P7_P8_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC6_P9_CP2_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC7_P9_CP_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC8_A2_Approach -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_3DACC9_A3_Approach -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC01_A1_P1_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC02_A1_P1_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC03_P1_P2 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC04_P2_P3 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC05_P3_P4 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC06_P4_P5 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC07_P5_CP1 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC08_CP1_P6_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC09_CP1_P6_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC10_P8_P9_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC11_P8_P9_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC12_CP2_P10 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC13_P10_P11 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC14_P11_P12 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC15_P12_P13 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC16_P13_P14 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC17_P14_A2_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC18_P14_A2_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC19_A3_P21_RHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC20_A3_P21_LHS -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC21_P21_P20 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC22_P20_P19 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC23_P19_P18 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC24_P18_P17 -Data List13Jul23.csv",
-    # "Tallah_ROB Accelerometer_ACC25_P17_P16 -Data List13Jul23.csv"
+    "Tallah_ROB Accelerometer_3DACC1_A1_Approach -Data.csv",
+    # "Tallah_ROB Accelerometer_3DACC2_P6_P7_RHS -Data.csv",
+    # "Tallah_ROB Accelerometer_3DACC3_P6_P7_LHS -Data.csv",
+    # "Tallah_ROB Accelerometer_3DACC4_P7_P8_RHS -Data.csv",
+    # "Tallah_ROB Accelerometer_3DACC5_P7_P8_LHS -Data.csv",
+    # "Tallah_ROB Accelerometer_3DACC6_P9_CP2_RHS -Data.csv",
+    # "Tallah_ROB Accelerometer_3DACC7_P9_CP_LHS -Data.csv",
+    # "Tallah_ROB Accelerometer_3DACC8_A2_Approach -Data.csv",
+    # "Tallah_ROB Accelerometer_3DACC9_A3_Approach -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC01_A1_P1_RHS -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC02_A1_P1_LHS -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC03_P1_P2 -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC04_P2_P3 -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC05_P3_P4 -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC06_P4_P5 -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC07_P5_CP1 -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC08_CP1_P6_RHS -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC09_CP1_P6_LHS -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC10_P8_P9_RHS -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC11_P8_P9_LHS -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC12_CP2_P10 -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC13_P10_P11 -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC14_P11_P12 -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC15_P12_P13 -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC16_P13_P14 -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC17_P14_A2_RHS -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC18_P14_A2_LHS -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC19_A3_P21_RHS -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC20_A3_P21_LHS -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC21_P21_P20 -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC22_P20_P19 -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC23_P19_P18 -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC24_P18_P17 -Data.csv",
+    # "Tallah_ROB Accelerometer_ACC25_P17_P16 -Data.csv"
 ]
 
 dl = [
@@ -3409,7 +3409,7 @@ def strain():
             else:
                 print(f"Required columns not found in {csv_file}. Skipping chart {i + 1}.")
 
-    return render_template('strain.html', strain_chart_datas=strain_chart_datas)
+    return render_template('strain.html', strain_plotly_divs=strain_chart_datas)
 
 # ACCELERO METER
 @main.route('/accelerometers/')

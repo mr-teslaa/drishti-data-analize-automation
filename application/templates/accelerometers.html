@@ -9,63 +9,17 @@
 {% endblock %}
 
 {% block content %}
-    {% for csv_data in accelerometers_charts_data %}
-        <p>{{ csv_data.csv_name }}</p>
-        <hr />
-        <canvas id="chart-{{ loop.index }}" width="400" height="200"></canvas>
-        <script>
-            // Get data from the Jinja context
-            let data = JSON.parse('{{ csv_data.data | tojson | safe }}');
-            let labels = data['DateTime'];
-
-            // Remove 'DateTime' key from the data
-            delete data['DateTime'];
-
-            // Get column names for the accelerometer data
-            let accelerometerColumns = Object.keys(data);
-
-            // Create a separate Line chart for each accelerometer column
-            accelerometerColumns.forEach(function (accelerometerColumn) {
-                // Create Chart.js Line chart
-                const ctx = document.createElement('canvas');
-                ctx.setAttribute('id', 'chart-{{ loop.index }}-' + accelerometerColumn);
-                ctx.setAttribute('width', '400');
-                ctx.setAttribute('height', '200');
-                document.body.appendChild(ctx);
-                ctx.getContext('2d');
-
-                const myChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                data: data[accelerometerColumn],
-                                label: accelerometerColumn,
-                                borderColor: "blue",
-                                fill: false
-                            }
-                        ]
-                    },
-
-                    options: {
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: "a chart title",
-                                color: 'navy',
-                                position: 'bottom',
-                                align: 'center',
-                                font: {
-                                    weight: 'bold'
-                                },
-                                padding: 8,
-                                fullSize: true,
-                            }
-                        }
-                    }
-                });
-            });
-        </script>
-    {% endfor %}
+    <!-- ACCELEROMETER CHARTS -->
+    <div class="container">
+        {% for chart_data in accelerometers_charts_data %}
+        {% for chart in chart_data["charts"] %}
+        <div class="container">
+            <h5>Accelerometer {{ chart["axis_column"] }}</h5>
+            <div id="{{ chart_data['canvas_id'] }}_{{ chart['axis'] | safe }}">
+                {{ chart['plotly_div'] | safe }}
+            </div>
+        </div>
+        {% endfor %}
+        {% endfor %}
+    </div>
 {% endblock %}
