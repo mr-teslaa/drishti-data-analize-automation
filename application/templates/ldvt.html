@@ -7,15 +7,13 @@
 {% endblock %}
 {% block content %}
     <!-- NEED TO FIX THIS CHART ID -->
-    <div id="chart-container"></div>
+    <div id="lvdt-chart-container"></div>
     <script>
         const ldvt_chart_data = {{ ldvt_charts_data | safe }};
-        console.log(ldvt_chart_data);
-        console.log('-----');
 
         ldvt_chart_data.forEach((csv_charts_data) => {
             // console.log(csv_charts_data);
-            const chartContainer = document.getElementById('chart-container');
+            const chartContainer = document.getElementById('lvdt-chart-container');
             const dlName = csv_charts_data[0]['dl_name'];
 
             const h2Element = document.createElement('h2');

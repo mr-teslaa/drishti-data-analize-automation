@@ -1,16 +1,11 @@
 {% extends "root.html" %}
-
 {% block title %}
     BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp; From {{ start_date }} to {{ end_date }}
 {% endblock %}
-
-{% block styles %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-{% endblock %}
-
+{% block styles %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>{% endblock %}
 {% block content %}
     <!-- Add this container to hold multiple charts -->
-    <div id="chart-container"></div>
+    <div id="laser-chart-container"></div>
     <script>
             // Loop through each chart data in the 'laser_charts_data' array
             const laserChartsData = {{ laser_charts_data | safe }};
@@ -29,7 +24,7 @@
             }
 
             // Access the container where the charts will be displayed
-            const chartContainer = document.getElementById('chart-container');
+            const chartContainer = document.getElementById('laser-chart-container');
 
             laserChartsData.forEach((chartData, index) => {
                 const chartId = chartData.chart_id;
@@ -40,12 +35,6 @@
 
                 // Extract deflection and threshold data for each chart
                 const { deflection_data, threshold_data } = extractDeflectionAndThresholdData([chartData])[0];
-
-                console.log('---------')
-                console.log({ deflection_data, threshold_data })
-                console.log('---------')
-                console.log(deflection_data)
-                console.log(threshold_data)
 
                 // Create a canvas element for the current chart
                 const canvasElement = document.createElement('canvas');

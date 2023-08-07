@@ -30,11 +30,8 @@ from flask import render_template_string
 
 # import pdfkit
 import pdfkit
-# from flask import send_file
-# from reportlab.lib.pagesizes import letter
-# from reportlab.pdfgen import canvas
-from PyPDF2 import PdfWriter
-from PyPDF2 import PdfReader
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
 
 from flask import current_app
 
@@ -57,7 +54,7 @@ laser_csv = "TallahROBLaser_Data_List.csv"
 
 accelerometers_csv = [
     "Tallah_ROB Accelerometer_3DACC1_A1_Approach -Data List13Jul23.csv",
-    "Tallah_ROB Accelerometer_3DACC2_P6_P7_RHS -Data List13Jul23.csv",
+    # "Tallah_ROB Accelerometer_3DACC2_P6_P7_RHS -Data List13Jul23.csv",
     # "Tallah_ROB Accelerometer_3DACC3_P6_P7_LHS -Data List13Jul23.csv",
     # "Tallah_ROB Accelerometer_3DACC4_P7_P8_RHS -Data List13Jul23.csv",
     # "Tallah_ROB Accelerometer_3DACC5_P7_P8_LHS -Data List13Jul23.csv",
@@ -3240,6 +3237,7 @@ def home():
 
     # Define the columns for analysis
     corrosion_columns = [
+        "DateTime",
         "N01_Corrosion_Current_1",
         "N01_Corrosion_Current_2",
         "N01_Corrosion_Current_3",
@@ -3251,13 +3249,27 @@ def home():
     ]
 
     df = pd.read_csv(corrosion_csv_files, skiprows=3)
+    df.columns = df.columns.str.strip()
+
 
     # Select the specified columns from the DataFrame
     corrosion_selected_columns = df[corrosion_columns]
+    corrosion_datetime_columns = df["DateTime"]
 
     # Convert the DataFrame to a list of dictionaries
     corrosion_data = corrosion_selected_columns.to_dict(orient='records')
     ################## END CORROSION DATA ######################
+
+    # strain_plotly_divs=strain()
+    # accelerometers_charts_data=accelerometers()
+    # ldvt_charts_data=lvdt()
+    # laser_charts_data=laser()
+    # temperature_plotly_divs=temperature()
+    strain_plotly_divs=[]
+    accelerometers_charts_data=[]
+    ldvt_charts_data=[]
+    laser_charts_data=[]
+    temperature_plotly_divs=[]
 
 
     return render_template(
@@ -3280,197 +3292,19 @@ def home():
         P7_P8_BS4_additional_RHS_statistics_datas=P7_P8_BS4_additional_RHS_statistics_datas,
         chitpur_viaduct_RHS_statistics_datas=chitpur_viaduct_RHS_statistics_datas,
         chitpur_viaduct_LHS_statistics_datas=chitpur_viaduct_LHS_statistics_datas,
-        corrosion_data=corrosion_data
+        corrosion_data=corrosion_data, corrosion_datetime_columns=corrosion_datetime_columns,
+
+        # PASSING CHARTS
+        strain_plotly_divs=strain_plotly_divs,
+        accelerometers_charts_data=accelerometers_charts_data,
+        ldvt_charts_data=ldvt_charts_data,
+        laser_charts_data=laser_charts_data,
+        temperature_plotly_divs=temperature_plotly_divs
     )
 
 
-#   STRAIN GUGES CHARTS VIEW
-@main.route('/strain/')
+#   STRAIN GUGES CHARTS
 def strain():
-    # shayam_bazar_viaduct_csv_files = [
-    #     dl[0]
-    # ] 
-    
-    # P6_P7_BS1_csv_files  = [
-    #     dl[0],
-    #     dl[1]
-    # ]
-
-    # P6_P7_BS3_csv_files = [
-    #     dl[1],
-    #     dl[2]
-    # ]
-
-    # P6_P7_BS5_csv_files = [
-    #     dl[2],
-    #     dl[3]
-    # ]
-
-    # P6_P7_BS2_csv_files = [
-    #     dl[0],
-    #     dl[1]
-    # ]
-
-    # P6_P7_BS4_csv_files = [
-    #     dl[1],
-    #     dl[2]
-    # ]
-
-    # P6_P7_BS6_csv_files = [
-    #     dl[2],
-    #     dl[3]
-    # ]
-
-    # dunlop_Viaduct_csv_files = [
-    #     dl[3]
-    # ]
-
-    # P7_P8_BS4_additional_csv_files = [
-    #     dl[1],
-    #     dl[2]
-    # ]
-
-    # chitpur_viaduct_csv_files = [
-    #     dl[4]
-    # ]
-
-    # # Create a list to store all the CSV files and their corresponding columns
-    # csv_data_list = [
-    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_RHS_columns),
-    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_LHS_columns),
-    #     (P6_P7_BS1_csv_files, P6_P7_BS1_LHS_columns),
-    #     (P6_P7_BS3_csv_files, P6_P7_BS3_LHS_columns),
-    #     (P6_P7_BS5_csv_files, P6_P7_BS5_LHS_columns),
-    #     (P6_P7_BS2_csv_files, P6_P7_BS2_RHS_columns),
-    #     (P6_P7_BS4_csv_files, P6_P7_BS4_RHS_columns),
-    #     (P6_P7_BS6_csv_files, P6_P7_BS6_RHS_columns),
-    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_RHS_columns),
-    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_LHS_columns),
-    #     (P7_P8_BS4_additional_csv_files, P7_P8_BS4_additional_RHS_columns),
-    #     (chitpur_viaduct_csv_files, chitpur_viaduct_RHS_columns),
-    #     (chitpur_viaduct_csv_files, chitpur_viaduct_LHS_columns)
-    # ]
-
-    # strain_charts_data = []
-
-    # # Iterate over each group of CSV files and their columns
-    # for csv_files, columns in csv_data_list:
-    #     # Create an empty dictionary to store data for this group
-    #     group_data = {
-    #         "csv_files": csv_files, 
-    #         "columns": columns,
-    #         "data": []
-    #     }
-
-    #     ###############################################
-    #     #### THIS CODE RETURNING AN ERROR 
-    #     #### KeyError: "['SP6P7_BS1L_HAJ_SG_1_Strain', 'SP6P7_BS1L_HAJ_SG_2_Strain', 'SP6P7_BS1L_HAJ_SG_3_Strain', 'SP6P7_BS1L_AAJ_SG_1_Strain', 'SP6P7_BS1L_AAJ_SG_2_Strain', 'SP6P7_BS1L_AAJ_SG_3_Strain', 'SP6P7_BS1L_HBLBJ_SG1_Strain', 'SP6P7_BS1L_HBLBJ_SG2_Strain', 'SP6P7_BS1L_HBLBJ_SG3_Strain', 'SP6P7_BS1L_BLBJ_SG_1_Strain', 'SP6P7_BS1L_BLBJ_SG_2_Strain', 'SP6P7_BS1L_BLBJ_SG3_Strain', 'P7_BS1L_NJ_SG_3_Strain', 'P7_BS1R_NJ_SG_4_Strain'] not in index"
-    #     ###############################################
-        
-    #     # # Iterate over each CSV file in the group
-    #     # for csv_file in csv_files:
-    #     #     # Read the CSV file into a DataFrame
-    #     #     df = pd.read_csv(csv_file, skiprows=3)
-
-    #     #     # Extract data for the defined columns and store it in the dictionary
-    #     #     group_data["data"].extend(df[columns].values.tolist())
-    #     ############################################
-    #     ############################################
-
-    #     # Iterate over each CSV file in the group
-    #     for csv_file in csv_files:
-    #         # Read the CSV file into a DataFrame
-    #         df = pd.read_csv(csv_file, skiprows=3)
-    #         df.columns = df.columns.str.strip()
-
-    #         # Find the common columns between DataFrame and specified columns
-    #         common_columns = list(set(columns).intersection(df.columns))
-    #         group_data["labels"] = list(df['DateTime'])
-            
-    #         # Extract data for the common columns and store it in the dictionary
-    #         for column in common_columns:
-    #             column_data = {
-    #                 "column_name": column,
-    #                 "csv_name": csv_file,
-    #                 "values": df[column].tolist()
-    #             }
-                
-    #             group_data["data"].append(column_data)
-
-    #     # Append the data for this group to the list for all CSV files
-    #     strain_charts_data.append(group_data)
-
-
-
-    # # Define the CSV files and their corresponding columns for generating the strain charts
-    # csv_data_list = [
-    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_RHS_columns),
-    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_LHS_columns),
-    #     (P6_P7_BS1_csv_files, P6_P7_BS1_LHS_columns),
-    #     (P6_P7_BS3_csv_files, P6_P7_BS3_LHS_columns),
-    #     (P6_P7_BS5_csv_files, P6_P7_BS5_LHS_columns),
-    #     (P6_P7_BS2_csv_files, P6_P7_BS2_RHS_columns),
-    #     (P6_P7_BS4_csv_files, P6_P7_BS4_RHS_columns),
-    #     (P6_P7_BS6_csv_files, P6_P7_BS6_RHS_columns),
-    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_RHS_columns),
-    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_LHS_columns),
-    #     (P7_P8_BS4_additional_csv_files, P7_P8_BS4_additional_RHS_columns),
-    #     (chitpur_viaduct_csv_files, chitpur_viaduct_RHS_columns),
-    #     (chitpur_viaduct_csv_files, chitpur_viaduct_LHS_columns)
-    # ]
-
-    # strain_charts_data = []
-
-    # # Iterate over each group of CSV files and their columns
-    # for csv_files, columns in csv_data_list:
-    #     # Create an empty dictionary to store data for this group
-    #     group_data = {
-    #         "csv_files": csv_files, 
-    #         "columns": columns,
-    #         "data": [],
-    #         "labels": []
-    #     }
-
-    #     # Iterate over each CSV file in the group
-    #     for csv_file in csv_files:
-    #         # Read the CSV file into a DataFrame
-    #         df = pd.read_csv(csv_file, skiprows=3)
-    #         df.columns = df.columns.str.strip()
-
-    #         # Find the common columns between DataFrame and specified columns
-    #         common_columns = list(set(columns).intersection(df.columns))
-    #         group_data["labels"] = list(df['DateTime'])
-            
-    #         # Extract data for the common columns and store it in the dictionary
-    #         for column in common_columns:
-    #             column_data = {
-    #                 "column_name": column,
-    #                 "csv_name": csv_file,
-    #                 "values": df[column].tolist()
-    #             }
-                
-    #             group_data["data"].append(column_data)
-
-    #     # Append the data for this group to the list for all CSV files
-    #     strain_charts_data.append(group_data)
-
-    # Define the CSV files and their corresponding columns for generating the strain charts
-    # csv_data_list = [
-    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_RHS_columns),
-    #     (shayam_bazar_viaduct_csv_files, shayam_bazar_viaduct_LHS_columns),
-    #     (P6_P7_BS1_csv_files, P6_P7_BS1_LHS_columns),
-    #     (P6_P7_BS3_csv_files, P6_P7_BS3_LHS_columns),
-    #     (P6_P7_BS5_csv_files, P6_P7_BS5_LHS_columns),
-    #     (P6_P7_BS2_csv_files, P6_P7_BS2_RHS_columns),
-    #     (P6_P7_BS4_csv_files, P6_P7_BS4_RHS_columns),
-    #     (P6_P7_BS6_csv_files, P6_P7_BS6_RHS_columns),
-    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_RHS_columns),
-    #     (dunlop_Viaduct_csv_files, dunlop_Viaduct_LHS_columns),
-    #     (P7_P8_BS4_additional_csv_files, P7_P8_BS4_additional_RHS_columns),
-    #     (chitpur_viaduct_csv_files, chitpur_viaduct_RHS_columns),
-    #     (chitpur_viaduct_csv_files, chitpur_viaduct_LHS_columns)
-    # ]
-
     # Initialize a list to store chart data for all charts
     strain_chart_datas = []
 
@@ -3482,12 +3316,11 @@ def strain():
         df.columns = df.columns.str.strip()
 
         # Initialize a list to store chart data for this CSV file
-        csv_charts_data = []
+        # csv_charts_data = []
 
         for i, columns in enumerate(strain_chart_columns):
             # Check if all required columns exist in the DataFrame
             if all(column in df.columns for column in columns):
-                # Create a dictionary to store chart data
                 chart_data = {
                     "dl_name": csv_file,
                     "chart_for": '',
@@ -3497,7 +3330,6 @@ def strain():
                 }
 
                 for column in columns:
-
                     if column in shayam_bazar_viaduct_RHS_columns:
                         chart_data["chart_for"] = 'shayam_bazar_viaduct_RHS'
                  
@@ -3548,7 +3380,7 @@ def strain():
 
                     if column in chitpur_viaduct_LHS_columns:
                         chart_data["chart_for"] = 'chitpur_viaduct_LHS'
-                   
+
 
                     # Create a dataset dictionary for this column
                     dataset = {
@@ -3562,24 +3394,24 @@ def strain():
                 # Generate a random ID for the chart
                 chart_data["canvas_id"] = generate_random_id()
 
-                # Append the chart data to the list for this CSV file
+                # Generate the Plotly chart using the canvas_id and store its HTML representation
+                fig = go.Figure()
+                for dataset in chart_data["datasets"]:
+                    fig.add_trace(go.Scatter(x=chart_data["labels"], y=dataset["data"], mode='lines', name=dataset["label"]))
+                fig.update_layout(title_text=chart_data["chart_title"])
+
+                chart_data["plotly_div"] = fig.to_html(full_html=False)
+
+                # Append the chart data to the list
                 strain_chart_datas.append(chart_data)
             else:
-                print(f"Required columns not found in {dl}. Skipping chart {i + 1}.")
+                print(f"Required columns not found in {csv_file}. Skipping chart {i + 1}.")
 
-        # Append the data for this group to the list for all CSV files
-        # strain_chart_datas.append(csv_charts_data)
+    return strain_chart_datas
 
-    return render_template(
-        'strain.html',
-        strain_chart_datas=strain_chart_datas
-    )
-
-#   ACCELEROMETERS VIEW 
-@main.route("/accelerometers/")
+# ACCELERO METER
 def accelerometers():
-    # ########## START Accelero Meter Data ##########
-    # Initialize a list to store data from all CSV files
+    # Initialize a list to store chart data for all CSV files
     accelerometers_charts_data = []
 
     # Iterate over each CSV file
@@ -3589,20 +3421,45 @@ def accelerometers():
         df.columns = df.columns.str.strip()
 
         # Create a dictionary to store data for this CSV file
-        csv_data = {
-            "csv_name": csv_file,  # Track the name of this CSV in the data
-            "data": df.to_dict(orient="list")
+        chart_data = {
+            "csv_name": csv_file,
+            "charts": []
         }
 
-        # Append the data for this CSV file to the list for all CSV files
-        accelerometers_charts_data.append(csv_data)
-    # ########## END Temperature Meter Data ##########
-    return render_template('accelerometers.html', accelerometers_charts_data=accelerometers_charts_data) 
+        # Find the accelerometer axes columns dynamically (excluding DateTime column)
+        axes_columns = [column for column in df.columns if column != "DateTime"]
+
+        # Generate a random ID for the chart
+        canvas_id = generate_random_id()
+
+        # Generate separate charts for each accelerometer axis
+        for axis_column in axes_columns:
+            axis = axis_column.split("_")[1]
+            axis_colmn = axis_column
+            print(f'---->>> axis: {axis} -------------')
+
+            # Create the Plotly chart
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=df["DateTime"], y=df[axis_column], mode='lines', name=f"Accelerometer {axis}"))
+
+            # Convert the Plotly chart to HTML representation
+            plotly_div = fig.to_html(full_html=False)
+
+            # Append the chart data to the list
+            chart_data["charts"].append({"axis": axis, "axis_column": axis_colmn, "plotly_div": plotly_div})
+
+        # Add the canvas_id to the chart_data
+        chart_data["canvas_id"] = canvas_id
+
+        # Append the chart data to the list
+        accelerometers_charts_data.append(chart_data)
+
+    # ########## END Accelerometer Data ##########
+    return accelerometers_charts_data
 
 
 #   ACCELEROMETERS CHART VIEW 
-@main.route("/lvdt/")
-def ldvt():
+def lvdt():
     # --------------------------------------- #
     # -- SHOWING LINE CHART OF LDVT Data ---- #
     # --------------------------------------- #
@@ -3657,58 +3514,6 @@ def ldvt():
         ['P17_D4_Displacement', 'TGS_Alert_Negative', 'TGS_Alert_Positive', 'P17_D3_D2_Action_Positive', 'P17_D3_D2_Action_Negative', 'P17_D3_D2_Alarm_Positive', 'P17_D3_D2_Alarm_Negative']
     ]
 
-    # # Initialize a list to store chart data for all charts
-    # ldvt_charts_data = []
-
-    # # Iterate over each CSV file
-    # for dl_csv_file in dl:
-    #     # Read the CSV file into a DataFrame
-    #     df = pd.read_csv(dl_csv_file, skiprows=3)
-    #     df.columns = df.columns.str.strip()
-
-    #     # Initialize a list to store chart data for this CSV file
-    #     csv_charts_data = []
-
-    #     for i, columns in enumerate(chart_columns):
-    #         # Check if all required columns exist in the DataFrame
-    #         if all(column in df.columns for column in columns):
-    #             print("inside")
-    #             # Create a dictionary to store chart data
-    #             chart_data = {
-    #                 "dl_name": dl_csv_file,
-    #                 "chart_title": f"Chart {i + 1}",
-    #                 "labels": list(df['DateTime']),
-    #                 "datasets": []
-    #             }
-
-    #             # Generate a random ID for the chart
-    #             chart_data["canvas_id"] = generate_random_id()
-
-    #             for column in columns:
-    #                 # Create a dataset dictionary for this column
-    #                 dataset = {
-    #                     "label": column,
-    #                     "data": list(df[column])
-    #                 }
-
-    #                 # Generate a random ID for the chart
-    #                 chart_data["canvas_id"] = generate_random_id()
-
-    #                 # Append the chart data to the list for this CSV file
-    #                 csv_charts_data.append(chart_data)
-
-    #             # Add the dataset to the chart data
-    #             chart_data["datasets"].append(dataset)
-
-    #             print(len(chart_data), chart_data)
-    #             # Append the chart data to the list for this CSV file
-    #             csv_charts_data.append(chart_data)
-    #         else:
-    #             print(f"Required columns not found in {dl_csv_file}. Skipping chart {i + 1}.")
-
-    #     # Append the chart data for this CSV file to the list for all CSV files
-    #     ldvt_charts_data.append(csv_charts_data)
-
     # Initialize a list to store chart data for all charts
     ldvt_charts_data = []
 
@@ -3753,12 +3558,11 @@ def ldvt():
         # Append the chart data for this CSV file to the list for all CSV files
         ldvt_charts_data.append(csv_charts_data)
 
-    return render_template('ldvt.html', ldvt_charts_data=ldvt_charts_data)
+    return ldvt_charts_data
 
 
 
 #   LASER CHART VIEW 
-@main.route("/laser/")
 def laser():
     # --------------------------------------- #
     # -- SHOWING LINE CHART OF Laser Data --- #
@@ -3773,9 +3577,34 @@ def laser():
     laser_charts_data = []
 
     # Iterate over the Deflection columns
-    for i in range(1, 6):
+    for i in range(1, 34):
+        if i==32:
+            deflection_column = f"Deflection32"
+            threshold_column = f"Threshold_LS_32"
+
+            # Create data dictionary for this chart
+            chart_data = {
+                f"ls{i}": [{
+                    "labels": [],  # Assuming 'DateTime' is a column in 'laser_df'
+                    "deflection_data": [],
+                    "threshold_data": [],
+                }],
+                "chart_id": f"laser_chart_{i}",
+                "chart_title": f"{deflection_column} - {threshold_column}",
+            }
+
+            # Append data dictionary to the array
+            laser_charts_data.append(chart_data)
+            continue
+
         deflection_column = f"Deflection_{i}"
-        threshold_column = f"Threshold_LS{i}_Alert"
+
+        if i!=6:
+            threshold_column = f"Threshold_LS{i}_Alert"
+        else:
+            threshold_column = f"Threshold_LS{i}"
+
+        print(f'++++++++++++++++++<<<<<<<<<Loop done {i}')
 
         # Create data dictionary for this chart
         chart_data = {
@@ -3785,7 +3614,7 @@ def laser():
                 "threshold_data": list(laser_df[threshold_column]),
             }],
             "chart_id": f"laser_chart_{i}",
-            "chart_title": f"Laser Chart {i}",
+            "chart_title": f"{deflection_column} - {threshold_column}",
         }
 
         # Append data dictionary to the array
@@ -3794,11 +3623,10 @@ def laser():
     # Store the chart data in the global dictionary
     template_data_dict['laser'] = laser_charts_data
 
-    return render_template('laser.html', laser_charts_data=laser_charts_data)
+    return laser_charts_data
 
 
 
-@main.route("/temperature/")
 def temperature():
     temperature_meter_csv_files = [dl[1], dl[3]]
 
@@ -3829,89 +3657,16 @@ def temperature():
             }
             
             temperature_charts_data.append(column_data)
-    
-    # Store the chart data in the global dictionary
-    template_data_dict['temperature'] = temperature_charts_data
 
-    return render_template('temperature.html', temperature_charts_data=temperature_charts_data)
+    # Create individual plotly figures for each column
+    plotly_figures = []
+    for column_data in temperature_charts_data:
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=column_data["labels"], y=column_data["values"], mode='lines', name=column_data["column_name"]))
+        fig.update_layout(title_text=f"Temperature Chart for {column_data['column_name']}")
+        plotly_figures.append(fig)
 
+    # Convert each plotly figure to an HTML div element
+    temperature_plotly_divs = [fig.to_html(full_html=False) for fig in plotly_figures]
 
-
-# # Function to collect template data from all routes
-# def collect_template_data():
-#     with current_app.test_request_context():
-#         with data_collection_lock:
-#             global data_collected
-#             if not data_collected:
-#                 for rule in current_app.url_map.iter_rules():
-#                     if rule.endpoint != 'static' and rule.endpoint.startswith('main.'):
-#                         # Simulate the request for each route and collect data
-#                         url = f"{rule.rule.lstrip('/')}"
-#                         with current_app.test_client() as client:
-#                             response = client.get(url)
-#                             template_data_dict[url] = response.get_data(as_text=True)
-#                 data_collected = True
-
-
-# Function to collect template data from all routes
-def collect_template_data():
-    with current_app.app_context():
-        with data_collection_lock:
-            global data_collected
-            if not data_collected:
-                for route in routes_to_collect:
-                    url = route
-                    # Render the template and store the rendered data
-                    with current_app.test_request_context():
-                        template_data = render_template(f'{route}.html')
-                    template_data_dict[url] = template_data
-                data_collected = True
-
-# Function to generate a PDF for each template
-def generate_pdf(template_data, lock):
-    # Convert the HTML to PDF using pdfkit
-    pdf = pdfkit.from_string(template_data, False)
-
-    # Append the PDF content to the global list
-    pdf_content.append(pdf)
-    lock.release()
-
-@main.route('/generate_pdf')
-def generate_combined_pdf():
-    # Check if data has been collected, if not redirect to /collect_data
-    global data_collected
-    if not data_collected:
-        return redirect(url_for('main.collect_data'))
-
-    lock = threading.Lock()
-
-    # Start multiple threads to generate PDFs for each template
-    threads = []
-    for template_data in template_data_dict.values():
-        thread = threading.Thread(target=generate_pdf, args=(template_data, lock))
-        threads.append(thread)
-        thread.start()
-
-    # Wait for all threads to finish
-    for thread in threads:
-        thread.join()
-
-    # Combine PDFs into a single PDF
-    output = BytesIO()
-    pdf_writer = PdfWriter()
-    for content in pdf_content:
-        pdf_writer.add_page(PdfReader(BytesIO(content)).pages[0])
-    pdf_writer.write(output)
-
-    # Prepare response with PDF content
-    response = make_response(output.getvalue())
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'attachment; filename=combined.pdf'
-    return response
-
-@main.route('/collect_data')
-def collect_data():
-    # Collect template data from all routes
-    collect_template_data()
-    # Redirect back to /generate_pdf for PDF generation
-    return redirect(url_for('main.generate_combined_pdf'))
+    return temperature_plotly_divs

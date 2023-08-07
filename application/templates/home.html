@@ -6,13 +6,12 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
 
 {% block styles %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
-<link href="https://printjs-4de6.kxcdn.com/print.min.css" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 {% endblock %}
 
 {% block content %}
 <main id="report-print">
-    <div class="container">
+    <div class="container" style="max-width: 595pt !important;">
         <div class="header-text text-center">
             <p class="text-center my-5">
                 <u>
@@ -26,7 +25,7 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
             <p class="fw-bold">(Time: {{start_time}} to {{end_time}})</p>
         </div>
         <!-- ======= START  Instrumentation health status ======= -->
-        <button id="download-pdf" class="btn btn-primary d-print-none">Download PDF</button>
+        <button id="download-pdf" class="btn btn-primary d-print-none" onclick="toPDF()">Download PDF</button>
         <h5 class="my-3 mt-5 text-primary">A. Instrumentation health status</h5>
         <div class="table-responsive">
             <table class="table table-bordered table-striped">
@@ -301,11 +300,97 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                 </tbody>
             </table>
         </div>
+
+        <!-- LASER CHART -->
+        <div class="container">
+            <div id="laser-chart-container"></div>
+            <script>
+                // Loop through each chart data in the 'laser_charts_data' array
+                const laserChartsData = {{ laser_charts_data | safe }};
+            </script>
+            <script>
+                // Function to extract deflection and threshold values
+                function extractDeflectionAndThresholdData(laserChartsData) {
+                    const result = [];
+
+                    for (const chartData of laserChartsData) {
+                        const { deflection_data, threshold_data } = Object.values(chartData)[0][0];
+                        result.push({ deflection_data, threshold_data });
+                    }
+
+                    return result;
+                }
+
+                // Access the container where the charts will be displayed
+                const chartContainer = document.getElementById('laser-chart-container');
+
+                laserChartsData.forEach((chartData, index) => {
+                    const chartId = chartData.chart_id;
+                    const chartTitle = chartData.chart_title;
+                    const chart_label_id = "ls" + (index+1);
+                    const laser_chart_labels = chartData[chart_label_id][0]['labels'];
+
+
+                    // Extract deflection and threshold data for each chart
+                    const { deflection_data, threshold_data } = extractDeflectionAndThresholdData([chartData])[0];
+
+                    // Create a canvas element for the current chart
+                    const canvasElement = document.createElement('canvas');
+                    canvasElement.id = chartId;
+                    canvasElement.style.width = '100%';
+                    canvasElement.style.height = '60vh';
+
+                    // Append the canvas element to the chart container
+                    chartContainer.appendChild(canvasElement);
+
+                    // Get the context for the current chart
+                    const ctx = canvasElement.getContext('2d');
+
+                    const myChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: laser_chart_labels,
+                            datasets: [
+                                {
+                                    data: deflection_data,
+                                    label: "Deflection Data",
+                                    borderColor: "blue",
+                                    fill: false
+                                }, {
+                                    data: threshold_data,
+                                    label: "Threshold Data",
+                                    borderColor: "red",
+                                    fill: false
+                                }
+                            ]
+                        },
+
+                        options: {
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: chartTitle,
+                                    color: 'navy',
+                                    position: 'bottom',
+                                    align: 'center',
+                                    font: {
+                                        weight: 'bold'
+                                    },
+                                    padding: 8,
+                                    fullSize: true,
+                                }
+                            }
+                        }
+                    });
+
+                });
+            </script>
+        </div>
         <!-- ======= END Table showing the locations and Tag of Laser Sensor ======= -->
 
         <!-- ======= START Summary of Laser Sensor. ======= -->
         <h5 class="my-5 text-primary">D. Summary of Laser Sensor.</h5>
-        <div class="table-responsive">
+        <div class="table-responsive pagebreak">
             <table class="table table-bordered table-striped">
                 <thead class="text-center">
                     <tr>
@@ -516,22 +601,25 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
 
 
         <!-- ======= START Graphical representation of Accelerometers ======= -->
-        <div class="table-responsive">
-            <h5 class="my-3 text-primary">
+        <div class="my-3">
+            <h5 class="text-primary">
                 G. Graphical representation of Accelerometers.
             </h5>
 
-            <script>
-            // Loop through each chart data in the 'laser_charts_data' array
-            const accelerometersChartsData = {{ accelerometers_charts_data | safe }};
-            console.log('-------- accelero meter chart data ---------')
-            console.log(accelerometersChartsData)
-            console.log('----------------')
-            </script>
+            <!-- ACCELEROMETER CHARTS -->
+            <div class="container">
+                {% for chart_data in accelerometers_charts_data %}
+                {% for chart in chart_data["charts"] %}
+                <div class="container">
+                    <h5>Accelerometer {{ chart["axis_column"] }}</h5>
+                    <div id="{{ chart_data['canvas_id'] }}_{{ chart['axis'] | safe }}">
+                        {{ chart['plotly_div'] | safe }}
+                    </div>
+                </div>
+                {% endfor %}
+                {% endfor %}
+            </div>
         </div>
-
-
-
         <!-- ======= END Graphical representation of Accelerometers ======= -->
 
 
@@ -597,7 +685,7 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                 </tbody>
             </table>
             <!-- P6-P7 LHS - BS1 -->
-            <table class="table table-bordered table-striped">
+            <table class="table table-bordered table-striped pagebreak">
                 <thead class="text-center">
                     <tr>
                         <th rowspan="3" style="width: 10px;">Sl.No</th>
@@ -953,6 +1041,21 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                 </tbody>
             </table>
         </div>
+
+        <!-- STRAIN CHARTS -->
+        <div class="container">
+            {% for strain_plotly_div in strain_plotly_divs %}
+            <div class="container">
+                <h3>{{ strain_plotly_div["chart_title"] }}</h3>
+                <p>Chart for: {{ strain_plotly_div["chart_for"] }}</p>
+                <p>Data Logger: {{ strain_plotly_div["dl_name"] }}</p>
+
+                <div id="{{ strain_plotly_div['canvas_id'] | safe }}">
+                    {{ strain_plotly_div['plotly_div'] | safe }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
         <!-- ======= END STRAIN GAUGES DATA ======= -->
 
 
@@ -981,6 +1084,15 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+
+        <!-- TEMPERATURE CHARTS -->
+        <div class="container">
+            {% for temperature_plotly_div in temperature_plotly_divs %}
+            <div class="container">
+                {{ temperature_plotly_div | safe }}
+            </div>
+            {% endfor %}
         </div>
         <!-- ======= END Analyze Temperature Meter ======= -->
 
@@ -1043,126 +1155,96 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
             </table>
         </div>
 
-        <!-- ======= START Graphical representation of Accelerometers ======= -->
-        
+        <!-- LVDT CHARTS -->
+        <div class="container">
+            <div id="lvdt-chart-container"></div>
+            <script>
+                const lvdt_chart_data = {{ ldvt_charts_data | safe }};
+
+                lvdt_chart_data.forEach((csv_charts_data) => {
+                    // console.log(csv_charts_data);
+                    const chartContainer = document.getElementById('lvdt-chart-container');
+                    const dlName = csv_charts_data[0]['dl_name'];
+
+                    // const h2Element = document.createElement('h2');
+                    // h2Element.textContent = `Charts for ${dlName}`;
+                    // chartContainer.appendChild(h2Element);
+
+                    csv_charts_data.forEach((chart_data, index) => {
+                        const dlName = chart_data['dl_name'];
+                        const canvasId = `chartCanvas${index}`+ chart_data['chart_title'];
+                        // const h3Element = document.createElement('h3');
+                        // h3Element.textContent = dlName;
+
+                        const canvasElement = document.createElement('canvas');
+                        canvasElement.id = canvasId;
+                        canvasElement.style.width = '100%';
+                        canvasElement.style.height = '60vh';
+
+                        // chartContainer.appendChild(h3Element);
+                        chartContainer.appendChild(canvasElement);
 
 
+                        const labels = chart_data['labels'];
+                        const datasets = chart_data['datasets'];
 
-        <!-- Add this container to hold multiple charts -->
-        <div id="chart-container"></div>
-
-        <!-- <script>
-            // Loop through each chart data in the 'laser_charts_data' array
-            const laserChartsData = {{ laser_charts_data | safe }};
-        </script>
-
-        <script>
-            // Function to extract deflection and threshold values
-            function extractDeflectionAndThresholdData(laserChartsData) {
-                const result = [];
-
-                for (const chartData of laserChartsData) {
-                    const { deflection_data, threshold_data } = Object.values(chartData)[0][0];
-                    result.push({ deflection_data, threshold_data });
-                }
-
-                return result;
-            }
-
-            // Access the container where the charts will be displayed
-            const chartContainer = document.getElementById('chart-container');
-
-            laserChartsData.forEach((chartData, index) => {
-                const chartId = chartData.chart_id;
-                const chartTitle = chartData.chart_title;
-                const chart_label_id = "ls" + (index+1);
-                const laser_chart_labels = chartData[chart_label_id][0]['labels'];
-
-
-                // Extract deflection and threshold data for each chart
-                const { deflection_data, threshold_data } = extractDeflectionAndThresholdData([chartData])[0];
-
-                console.log('---------')
-                console.log({ deflection_data, threshold_data })
-                console.log('---------')
-                console.log(deflection_data)
-                console.log(threshold_data)
-
-                // Create a canvas element for the current chart
-                const canvasElement = document.createElement('canvas');
-                canvasElement.id = chartId;
-                canvasElement.style.width = '100%';
-                canvasElement.style.height = '60vh';
-
-                // Append the canvas element to the chart container
-                chartContainer.appendChild(canvasElement);
-
-                // Get the context for the current chart
-                const ctx = canvasElement.getContext('2d');
-
-                const myChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: laser_chart_labels,
-                        datasets: [
-                            {
-                                data: deflection_data,
-                                label: "Deflection Data",
-                                borderColor: "blue",
-                                fill: false
-                            }, {
-                                data: threshold_data,
-                                label: "Threshold Data",
-                                borderColor: "red",
-                                fill: false
-                            }
-                        ]
-                    },
-
-                    options: {
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: chartTitle,
-                                color: 'navy',
-                                position: 'bottom',
-                                align: 'center',
-                                font: {
-                                    weight: 'bold'
-                                },
-                                padding: 8,
-                                fullSize: true,
-                            }
-                        }
-                    }
+                        createChart(canvasId, labels, datasets);
+                    });
                 });
 
-            });
-        </script> -->
-        <!-- ======= END Graphical representation of Accelerometers ======= -->
+                function createChart(canvasId, labels, datasets) {
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line', // Change this to the desired chart type (e.g., 'bar', 'pie', etc.)
+                        data: {
+                            labels: labels,
+                            datasets: datasets
+                        },
+                        options: {
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: "",
+                                    color: 'navy',
+                                    position: 'bottom',
+                                    align: 'center',
+                                    font: {
+                                        weight: 'bold'
+                                    },
+                                    padding: 8,
+                                    fullSize: true,
+                                }
+                            }
+                        }
+                    });
+                }
+            </script>
+        </div>
+        <!-- ======= END LVDT =======  -->
+    
 
 
-        <!-- ======= START LVDT =======  -->
+        <!-- ======= START Corrision =======  -->
         <h5 class="my-4 text-primary">L. Summary of Corrision</h5>
-        <div class="table-responsive">
+        <div class="table-container">
             <table class="table table-bordered table-striped">
                 <thead class="text-center">
                     <tr>
                         <th>Datetime</th>
-                        <th>N01_Corrosion_Current_1</th>
-                        <th>N01_Corrosion_Current_2</th>
-                        <th>N01_Corrosion_Current_3</th>
-                        <th>N01_Corrosion_Current_4</th>
-                        <th>N02_Corrosion_Current_1</th>
-                        <th>N02_Corrosion_Current_2</th>
-                        <th>N02_Corrosion_Current_3</th>
-                        <th>N02_Corrosion_Current_4</th>
+                        <th>N01 Corrosion Current 1</th>
+                        <th>N01 Corrosion Current 2</th>
+                        <th>N01 Corrosion Current 3</th>
+                        <th>N01 Corrosion Current 4</th>
+                        <th>N02 Corrosion Current 1</th>
+                        <th>N02 Corrosion Current 2</th>
+                        <th>N02 Corrosion Current 3</th>
+                        <th>N02 Corrosion Current 4</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for row in corrosion_data %}
                     <tr>
-                        <td>{{ row['Datetime'] }}</td>
+                        <td>{{ row['DateTime']  }}</td>
                         <td>{{ row['N01_Corrosion_Current_1'] }}</td>
                         <td>{{ row['N01_Corrosion_Current_2'] }}</td>
                         <td>{{ row['N01_Corrosion_Current_3'] }}</td>
@@ -1176,13 +1258,29 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
                 </tbody>
             </table>
         </div>
-        <!-- ====== END LVDT ========  -->
+
+        <h5 class="my-4 text-primary">
+            P. Summary of Corrosion.
+        </h5>
+        <p>
+            Some maintenance work was carried out on a workstation of control room; therefore, some data of accelerometers & Laser sensors were missed.The changes recorded by strain gauges are negligible, in some of the cases the spikes define the running load of traffic.
+        </p>
+        <p>
+            In case of Laser sensors and accelerometers they portray the condition of traffic on the bridge. In case of some laser sensors the targets maybe disturbed by the local people.
+        </p>
+        <p>
+            The corrosion monitoring system records a negligible value.
+        </p>
+        <p>
+            DL1 can record and upload the data on 30 minutes interval only.
+        </p>
+        <!-- ====== END Corrision ========  -->
     </div>
 
 </main>
 {% endblock %}
 {% block scripts %}
-<script>
+<!-- <script>
     document.addEventListener('DOMContentLoaded', () => {
         const downloadbtn = document.querySelector('#download-pdf');
         downloadbtn.addEventListener('click', () => {
@@ -1195,5 +1293,25 @@ BHMS Report of New Tallah ROB (Hemanta Setu) &nbsp; Summery Report &nbsp; &nbsp;
             });
         })
     })
+</script> -->
+
+<script>
+function toPDF () {
+    html2pdf()
+    // (C1) SET OPTIONS
+    .set({
+        // margin: 1,
+        filename: "drishti-data-analyze-automation-report.pdf",
+        enableLinks : true,
+        jsPDF: { format: "A4", orientation: "portrait" },
+        pagebreak: { before: '.pagebreak', mode: ['avoid-all', 'css', 'legacy'] }
+    })
+
+    // (C2) GET CONTENT FROM SECTION
+    .from(document.getElementById('report-print'))
+
+    // (C3) SAVE TO FILE
+    .save();
+}
 </script>
 {% endblock %}
